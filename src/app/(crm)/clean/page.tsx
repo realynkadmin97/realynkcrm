@@ -1,5 +1,4 @@
 import { CleanerDesk } from "@/components/cleaner-desk";
-import { PageTitle } from "@/components/shell";
 import { can, permissionsFor, requireUser } from "@/lib/auth";
 import { listCleanerLists } from "@/lib/cleaner-store";
 
@@ -8,12 +7,8 @@ export default async function CleanPage() {
   const permissions = await permissionsFor(user);
   const lists = await listCleanerLists(user.id);
   return (
-    <>
-      <PageTitle
-        title="Cleaner"
-        detail="Import a lead list, map the columns, and clean company names and titles. The sheet is stored for the company, so it remains after you close the tab and is visible to other signed-in teammates."
-      />
+    <div className="-mx-4 -my-6 flex h-[calc(100dvh-2.75rem)] min-h-0 flex-col md:-mx-8 md:-my-8">
       <CleanerDesk initialLists={lists} canPromote={can(permissions, "leads.create")} />
-    </>
+    </div>
   );
 }

@@ -1,9 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { addCleanedLeads, createCleanerList, removeCleanerList, saveCleanerList } from "@/app/clean-actions";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { addCleanedLeads, createCleanerList, saveCleanerList } from "@/app/clean-actions";
 import {
   CANONICAL,
   MAX_CSV_CHARS,
@@ -20,12 +18,47 @@ import {
 import type { CleanerList } from "@/lib/cleaner-store";
 
 type Job = { header: "Company" | "Title"; label: string };
+type Snap = { name: string; headers: string[]; rows: CleanerRow[] };
+type Theme = "light" | "dark";
+type Density = "compact" | "comfortable";
+
+const SAMPLE_HEADERS = ["First Name", "Last Name", "Company", "Title", "Email", "LinkedIn URL"];
+const SAMPLE_ROWS: CleanerRow[] = [
+  {
+    [ROW_ID]: "sample-dana",
+    "First Name": "Dana",
+    "Last Name": "Ruiz",
+    Company: "northwind clinics, llc",
+    Title: "vp operations",
+    Email: "dana.ruiz@northwind.example",
+    "LinkedIn URL": "https://www.linkedin.com/in/dana-ruiz-example",
+  },
+  {
+    [ROW_ID]: "sample-elena",
+    "First Name": "Elena",
+    "Last Name": "Brooks",
+    Company: "LUMEN DENTAL GROUP INC",
+    Title: "dir. of recruiting",
+    Email: "elena.brooks@lumen.example",
+    "LinkedIn URL": "https://www.linkedin.com/in/elena-brooks-example",
+  },
+];
+
+function columnLetter(index: number) {
+  let n = index;
+  let label = "";
+  while (n >= 0) {
+    label = String.fromCharCode((n % 26) + 65) + label;
+    n = Math.floor(n / 26) - 1;
+  }
+  return label;
+}
 
 export function CleanerDesk({ initialLists, canPromote }: { initialLists: CleanerList[]; canPromote: boolean }) {
   const [lists, setLists] = useState(initialLists);
   const [activeId, setActiveId] = useState(initialLists[0]?.id ?? "");
   const active = lists.find((list) => list.id === activeId) ?? null;
-  const [name, setName] = useState(active?.name ?? "");
+  const [name, setName] = useState(active?.name ?? "Lead Enrichment");
   const [headers, setHeaders] = useState(active?.headers ?? []);
   const [rows, setRows] = useState<CleanerRow[]>(active?.rows ?? []);
   const [checked, setChecked] = useState<string[]>([]);
@@ -35,7 +68,17 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
   const [pending, setPending] = useState(false);
   const [importing, setImporting] = useState<{ headers: string[]; records: string[][]; choices: string[] } | null>(null);
   const [queue, setQueue] = useState<Job[]>([]);
-  const [running, setRunning] = useState<Job | null>(null);
+  const [running, setRunning] = useState<string>("");
+  const [editing, setEditing] = useState<{ id: string; header: string; value: string } | null>(null);
+  const [selected, setSelected] = useState<{ id: string; header: string } | null>(null);
+  const [menu, setMenu] = useState<{ header: string; x: number; y: number } | null>(null);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const [keysOpen, setKeysOpen] = useState(false);
+  const [blockedTool, setBlockedTool] = useState("");
+  const [theme, setTheme] = useState<Theme>("light");
+  const [density, setDensity] = useState<Density>("comfortable");
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
   const [newName, setNewName] = useState("");
   const rowsRef = useRef(rows);
   const headersRef = useRef(headers);
@@ -43,6 +86,10 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
   const queueRef = useRef<Job[]>([]);
   const stopRef = useRef(false);
   const workingRef = useRef(false);
+  const pastRef = useRef<Snap[]>([]);
+  const futureRef = useRef<Snap[]>([]);
+  const appearanceRef = useRef<HTMLButtonElement>(null);
+  const [appearancePos, setAppearancePos] = useState({ top: 0, left: 0 });
 
   const visible = useMemo(() => {
     const needle = filter.trim().toLowerCase();
@@ -50,34 +97,73 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
     return rows.filter((row) => headers.some((header) => (row[header] ?? "").toLowerCase().includes(needle)));
   }, [filter, headers, rows]);
 
+  useEffect(() => {
+    function close() {
+      setMenu(null);
+    }
+    window.addEventListener("scroll", close, true);
+    return () => window.removeEventListener("scroll", close, true);
+  }, []);
+
+  function remember() {
+    pastRef.current = [...pastRef.current.slice(-39), { name: nameRef.current, headers: headersRef.current, rows: rowsRef.current }];
+    futureRef.current = [];
+    setCanUndo(true);
+    setCanRedo(false);
+  }
+
+  function applySnap(snap: Snap) {
+    nameRef.current = snap.name;
+    headersRef.current = snap.headers;
+    rowsRef.current = snap.rows;
+    setName(snap.name);
+    setHeaders(snap.headers);
+    setRows(snap.rows);
+  }
+
   function load(list: CleanerList) {
     setActiveId(list.id);
-    setName(list.name);
-    setHeaders(list.headers);
-    setRows(list.rows);
     nameRef.current = list.name;
     headersRef.current = list.headers;
     rowsRef.current = list.rows;
+    setName(list.name);
+    setHeaders(list.headers);
+    setRows(list.rows);
     setChecked([]);
     setImporting(null);
     setFilter("");
+    setSelected(null);
+    setEditing(null);
+    pastRef.current = [];
+    futureRef.current = [];
+    setCanUndo(false);
+    setCanRedo(false);
   }
 
   async function persist(nextName: string, nextHeaders: string[], nextRows: CleanerRow[], id = activeId) {
     if (!id) return "Open or create a list first.";
     const result = await saveCleanerList({ id, name: nextName, headers: nextHeaders, rows: nextRows });
     if ("error" in result && result.error) return result.error;
-    setLists((current) =>
-      current.map((list) => (list.id === id ? { ...list, name: nextName, headers: nextHeaders, rows: nextRows } : list)),
-    );
+    setLists((current) => current.map((list) => (list.id === id ? { ...list, name: nextName, headers: nextHeaders, rows: nextRows } : list)));
     return "";
+  }
+
+  async function commit(nextHeaders: string[], nextRows: CleanerRow[], nextName = nameRef.current) {
+    headersRef.current = nextHeaders;
+    rowsRef.current = nextRows;
+    nameRef.current = nextName;
+    setHeaders(nextHeaders);
+    setRows(nextRows);
+    setName(nextName);
+    const problem = await persist(nextName, nextHeaders, nextRows);
+    setError(problem);
+    return problem;
   }
 
   async function onCreate(event: React.FormEvent) {
     event.preventDefault();
     setPending(true);
-    setError("");
-    const result = await createCleanerList(newName || "Untitled list");
+    const result = await createCleanerList(newName || "New client");
     setPending(false);
     if (!("list" in result) || !result.list) {
       setError("error" in result ? result.error : "That list could not be created.");
@@ -86,15 +172,11 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
     setLists((current) => [result.list, ...current]);
     load(result.list);
     setNewName("");
-    setMessage("List created. Import a CSV when you are ready.");
+    setMessage("");
   }
 
   function onFile(file: File | null) {
-    if (!file) return;
-    if (!activeId) {
-      setError("Create a list before importing.");
-      return;
-    }
+    if (!file || !activeId) return;
     const reader = new FileReader();
     reader.onload = () => {
       const text = String(reader.result ?? "");
@@ -109,13 +191,8 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
           return;
         }
         const sourceHeaders = table[0] ?? [];
-        setImporting({
-          headers: sourceHeaders,
-          records: table.slice(1),
-          choices: sourceHeaders.map((header) => suggestColumn(header)),
-        });
+        setImporting({ headers: sourceHeaders, records: table.slice(1), choices: sourceHeaders.map((header) => suggestColumn(header)) });
         setError("");
-        setMessage("Match each column, then bring the rows into this list.");
       } catch {
         setError("That CSV could not be read.");
       }
@@ -124,39 +201,20 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
   }
 
   async function confirmImport() {
-    if (!importing || !active) return;
+    if (!importing) return;
     setPending(true);
     try {
       const sheet = applyMapping(importing.headers, importing.records, importing.choices);
-      const problem = await persist(nameRef.current, sheet.headers, sheet.rows);
-      if (problem) setError(problem);
-      else {
-        headersRef.current = sheet.headers;
-        rowsRef.current = sheet.rows;
-        setHeaders(sheet.headers);
-        setRows(sheet.rows);
-        setChecked([]);
+      remember();
+      const problem = await commit(sheet.headers, sheet.rows);
+      if (!problem) {
         setImporting(null);
-        setMessage(`${sheet.rows.length} rows saved to ${nameRef.current}.`);
-        setError("");
+        setMessage(`${sheet.rows.length} rows imported.`);
       }
-    } catch (caught) {
-      setError(caught instanceof Error && caught.message.startsWith("CRM:") ? "Check the column matches and try again." : "That import could not be saved.");
+    } catch {
+      setError("Check the column matches and try again.");
     }
     setPending(false);
-  }
-
-  async function commitSheet(nextHeaders: string[], nextRows: CleanerRow[], nextName = nameRef.current) {
-    headersRef.current = nextHeaders;
-    rowsRef.current = nextRows;
-    nameRef.current = nextName;
-    setHeaders(nextHeaders);
-    setRows(nextRows);
-    setName(nextName);
-    const problem = await persist(nextName, nextHeaders, nextRows);
-    if (problem) setError(problem);
-    else setError("");
-    return problem;
   }
 
   function enqueue(header: "Company" | "Title") {
@@ -164,9 +222,9 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
       setError(`Map a ${header} column before cleaning it.`);
       return;
     }
-    const job = { header, label: header === "Company" ? "Normalize company" : "Normalize titles" };
-    if (running?.header === header || queueRef.current.some((item) => item.header === header)) {
-      setMessage("That clean is already running or queued.");
+    const job = { header, label: header === "Company" ? "Normalize Company" : "Normalize Titles" };
+    if (running === job.label || queueRef.current.some((item) => item.header === header)) {
+      setMessage("Queued");
       return;
     }
     queueRef.current = [...queueRef.current, job];
@@ -182,35 +240,35 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
       if (!job) break;
       queueRef.current = queueRef.current.slice(1);
       setQueue(queueRef.current);
-      setRunning(job);
+      setRunning(job.label);
+      remember();
       const only = checked.length ? checked : undefined;
       const updated = normalizeColumn(rowsRef.current, job.header, only);
-      rowsRef.current = updated;
-      setRows(updated);
-      const problem = await persist(nameRef.current, headersRef.current, updated);
-      setError(problem);
+      const problem = await commit(headersRef.current, updated);
       if (!problem) setMessage(`${job.label} saved.`);
-      setRunning(null);
+      setRunning("");
     }
     if (stopRef.current) {
       stopRef.current = false;
       queueRef.current = [];
       setQueue([]);
-      setRunning(null);
+      setRunning("");
       setMessage("Stopped. Finished rows stay on the sheet.");
     }
     workingRef.current = false;
   }
 
-  function stop() {
-    stopRef.current = true;
-    queueRef.current = [];
-    setQueue([]);
-    setMessage("Stopping after the current clean.");
+  function download() {
+    const href = URL.createObjectURL(new Blob([toCsv(headers, rows)], { type: "text/csv" }));
+    const link = document.createElement("a");
+    link.href = href;
+    link.download = `${name || "leads"}.csv`;
+    link.click();
+    URL.revokeObjectURL(href);
   }
 
   async function addToPipeline() {
-    const chosen = checked.length ? rows.filter((row) => checked.includes(row[ROW_ID] ?? "")) : rows;
+    const chosen = checked.length ? rows.filter((row) => checked.includes(row[ROW_ID] ?? "")) : visible;
     const payload = chosen.map((row) => ({
       fullName: [row["First Name"], row["Last Name"]].filter(Boolean).join(" ") || row["Full Name"] || "",
       company: row.Company ?? "",
@@ -223,257 +281,380 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
     else setError(result.error);
   }
 
-  function download() {
-    const csv = toCsv(headers, rows);
-    const href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    const link = document.createElement("a");
-    link.href = href;
-    link.download = `${name || "leads"}.csv`;
-    link.click();
-    URL.revokeObjectURL(href);
-  }
+  const rowHeight = density === "compact" ? 26 : 34;
+  const dark = theme === "dark";
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex gap-2 overflow-x-auto">
-          {lists.map((list) => (
-            <button
-              key={list.id}
-              type="button"
-              onClick={() => load(list)}
-              className={`shrink-0 rounded-lg border px-3 py-2 text-sm ${list.id === activeId ? "border-primary bg-primary/10" : "border-border"}`}
+    <div
+      className="flex h-full min-h-0 flex-col overflow-hidden text-[13px]"
+      style={{
+        background: dark ? "#202124" : "#f8f9fa",
+        color: dark ? "#e8eaed" : "#202124",
+      }}
+    >
+      <header className="z-30 shrink-0 border-b px-3 py-2 sm:px-5" style={{ borderColor: dark ? "#3c4043" : "#dadce0", background: dark ? "#292a2d" : "#fff" }}>
+        <div className="mx-auto flex max-w-[1600px] items-center gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-sm font-medium tracking-tight">Lead Enrichment</h1>
+            <p className="mt-0.5 truncate text-[11px]" style={{ color: dark ? "#9aa0a6" : "#5f6368" }}>
+              Sheet + requirements saved per client · Clear to delete & re-upload
+            </p>
+          </div>
+          <div className="toolbar-rail flex max-w-[min(100%,42rem)] shrink-0 items-center gap-2 overflow-x-auto">
+            <SheetButton disabled={!canUndo} title="Undo" onClick={() => {
+              const snap = pastRef.current.pop();
+              if (!snap) return;
+              futureRef.current.push({ name: nameRef.current, headers: headersRef.current, rows: rowsRef.current });
+              applySnap(snap);
+              setCanUndo(pastRef.current.length > 0);
+              setCanRedo(true);
+              void persist(snap.name, snap.headers, snap.rows);
+            }}>Undo</SheetButton>
+            <SheetButton disabled={!canRedo} title="Redo" onClick={() => {
+              const snap = futureRef.current.pop();
+              if (!snap) return;
+              pastRef.current.push({ name: nameRef.current, headers: headersRef.current, rows: rowsRef.current });
+              applySnap(snap);
+              setCanUndo(true);
+              setCanRedo(futureRef.current.length > 0);
+              void persist(snap.name, snap.headers, snap.rows);
+            }}>Redo</SheetButton>
+            <SheetButton
+              buttonRef={appearanceRef}
+              onClick={() => {
+                const rect = appearanceRef.current?.getBoundingClientRect();
+                if (rect) setAppearancePos({ top: rect.bottom + 4, left: Math.max(8, rect.right - 220) });
+                setAppearanceOpen((open) => !open);
+              }}
             >
-              {list.name}
-            </button>
-          ))}
+              Appearance
+            </SheetButton>
+            <SheetButton onClick={() => setKeysOpen(true)}>API keys</SheetButton>
+          </div>
         </div>
-        <form onSubmit={onCreate} className="flex gap-2">
-          <Input value={newName} onChange={(event) => setNewName(event.target.value)} placeholder="New list name" aria-label="New list name" />
-          <Button type="submit" disabled={pending}>
-            New list
-          </Button>
+      </header>
+
+      <div className="mx-auto flex w-full max-w-[1600px] items-center gap-2 overflow-x-auto px-3 py-2 sm:px-5">
+        {lists.map((list) => (
+          <button
+            key={list.id}
+            type="button"
+            onClick={() => load(list)}
+            className="shrink-0 rounded border px-2.5 py-1 text-xs font-medium"
+            style={{
+              borderColor: list.id === activeId ? "#1a73e8" : dark ? "#3c4043" : "#dadce0",
+              background: list.id === activeId ? "#1a73e8" : dark ? "#292a2d" : "#fff",
+              color: list.id === activeId ? "#fff" : dark ? "#e8eaed" : "#202124",
+            }}
+          >
+            {list.name}
+          </button>
+        ))}
+        <form onSubmit={onCreate} className="flex shrink-0 items-center gap-1">
+          <input
+            value={newName}
+            onChange={(event) => setNewName(event.target.value)}
+            placeholder="New client"
+            aria-label="New client"
+            className="h-7 w-36 rounded border bg-transparent px-2 text-xs outline-none"
+            style={{ borderColor: dark ? "#3c4043" : "#dadce0" }}
+          />
+          <SheetButton type="submit" disabled={pending}>Add</SheetButton>
         </form>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Industry lookup, email verification, and ICP scoring stay off until a server key is configured. This desk does not send the sheet to an outside service.
-      </p>
-      {message ? <p className="rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary">{message}</p> : null}
-      {error ? <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p> : null}
-
-      {!active ? <p className="text-sm text-muted-foreground">Create a list to import the first CSV.</p> : null}
-
       {active ? (
-        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
-          <Input
-            value={name}
-            onChange={(event) => {
-              nameRef.current = event.target.value;
-              setName(event.target.value);
-            }}
-            aria-label="List name"
-            className="md:max-w-xs"
-          />
-          <Button type="button" variant="outline" onClick={() => commitSheet(headers, rows, name)} disabled={pending}>
-            Save
-          </Button>
-          <label className="text-sm">
-            <span className="sr-only">CSV file</span>
-            <input
-              type="file"
-              accept=".csv,text/csv"
-              className="block text-sm"
-              onChange={(event) => {
-                onFile(event.target.files?.[0] ?? null);
-                event.target.value = "";
-              }}
-            />
-          </label>
-          <Button type="button" variant="outline" onClick={() => enqueue("Company")}>
-            Normalize company
-          </Button>
-          <Button type="button" variant="outline" onClick={() => enqueue("Title")}>
-            Normalize titles
-          </Button>
-          <Button type="button" variant="outline" onClick={download} disabled={!rows.length}>
-            Export CSV
-          </Button>
-          {canPromote ? (
-            <Button type="button" onClick={addToPipeline} disabled={pending || !rows.length}>
-              Add to pipeline
-            </Button>
-          ) : (
-            <p className="text-xs text-muted-foreground">Export the CSV, or ask a manager to add these rows to the pipeline.</p>
-          )}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={async () => {
-              const result = await removeCleanerList(active.id);
-              if ("error" in result && result.error) setError(result.error);
-              else {
-                const next = lists.filter((list) => list.id !== active.id);
-                setLists(next);
-                if (next[0]) load(next[0]);
-                else {
-                  setActiveId("");
-                  setHeaders([]);
-                  setRows([]);
-                  headersRef.current = [];
-                  rowsRef.current = [];
-                }
-                setMessage("List removed.");
-              }
+        <div className="mx-auto flex w-full max-w-[1600px] shrink-0 items-center gap-2 overflow-x-auto px-3 pb-2 sm:px-5">
+          <SheetButton onClick={() => enqueue("Company")}>Normalize Company</SheetButton>
+          <SheetButton onClick={() => enqueue("Title")}>Normalize Titles</SheetButton>
+          <SheetButton onClick={() => setBlockedTool("Scrape Industry")}>Scrape Industry</SheetButton>
+          <SheetButton onClick={() => setBlockedTool("Verify Email")}>Verify Email</SheetButton>
+          <SheetButton onClick={() => setBlockedTool("ICP Score")}>ICP Score</SheetButton>
+          <SheetButton onClick={() => setBlockedTool("Custom Research")}>Custom Research</SheetButton>
+          <SheetButton onClick={download} disabled={!rows.length}>Export</SheetButton>
+          <SheetButton
+            onClick={() => {
+              remember();
+              const label = `Column ${headers.length + 1}`;
+              const nextHeaders = [...headersRef.current, label];
+              const nextRows = rowsRef.current.map((row) => ({ ...row, [label]: "" }));
+              void commit(nextHeaders, nextRows);
             }}
           >
-            Remove list
-          </Button>
+            Add column
+          </SheetButton>
+          {canPromote ? <SheetButton accent onClick={addToPipeline} disabled={pending || !rows.length}>Add to pipeline</SheetButton> : null}
+          <SheetButton
+            onClick={() => {
+              if (!window.confirm("Clear this client’s saved sheet? You can upload again.")) return;
+              remember();
+              void commit([], []);
+              setMessage("Sheet cleared.");
+            }}
+          >
+            Clear
+          </SheetButton>
           {running || queue.length ? (
-            <Button type="button" variant="outline" onClick={stop}>
-              Stop
-            </Button>
+            <SheetButton onClick={() => { stopRef.current = true; queueRef.current = []; setQueue([]); setMessage("Stopping after the current clean."); }}>Stop</SheetButton>
           ) : null}
-          {running ? <span className="text-sm">Running {running.label}</span> : null}
-          {queue.map((job) => (
-            <span key={job.header} className="text-sm text-muted-foreground">
-              Queued {job.label}
-            </span>
-          ))}
+          <label className="shrink-0 cursor-pointer rounded border px-2.5 py-1 text-xs font-medium" style={{ borderColor: "#1a73e8", color: "#1a73e8" }}>
+            Replace file
+            <input type="file" accept=".csv,text/csv" className="sr-only" onChange={(event) => { onFile(event.target.files?.[0] ?? null); event.target.value = ""; }} />
+          </label>
+          <input
+            value={filter}
+            onChange={(event) => setFilter(event.target.value)}
+            placeholder="Filter…"
+            aria-label="Filter rows"
+            className="h-7 w-36 shrink-0 rounded border bg-transparent px-2 text-xs outline-none"
+            style={{ borderColor: dark ? "#3c4043" : "#dadce0" }}
+          />
+          {running ? <span className="shrink-0 text-xs">Running {running}</span> : null}
+          {queue.map((job) => <span key={job.header} className="shrink-0 text-xs">Queued {job.label}</span>)}
         </div>
       ) : null}
 
-      {importing ? (
-        <div className="space-y-3 rounded-xl border border-border p-4">
-          <p className="font-medium">Match the columns</p>
-          {importing.headers.map((header, index) => (
-            <label key={`${header}-${index}`} className="grid gap-1 text-sm md:grid-cols-[1fr_16rem] md:items-center">
-              <span>{header || `Column ${index + 1}`}</span>
-              <select
-                value={importing.choices[index]}
-                onChange={(event) =>
-                  setImporting((current) =>
-                    current
-                      ? { ...current, choices: current.choices.map((choice, choiceIndex) => (choiceIndex === index ? event.target.value : choice)) }
-                      : current,
-                  )
-                }
-                className="h-8 rounded-lg border border-input bg-transparent px-2"
-              >
-                <option value="skip">Skip</option>
-                <option value="extra">Keep as its own column</option>
-                {CANONICAL.map((field) => (
-                  <option key={field.label} value={field.label}>
-                    {field.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ))}
-          <div className="flex gap-2">
-            <Button type="button" onClick={confirmImport} disabled={pending}>
-              Import rows
-            </Button>
-            <Button type="button" variant="outline" onClick={() => setImporting(null)}>
-              Cancel
-            </Button>
+      {message ? <p className="mx-auto w-full max-w-[1600px] px-3 text-xs sm:px-5" style={{ color: "#1a73e8" }}>{message}</p> : null}
+      {error ? <p className="mx-auto w-full max-w-[1600px] px-3 text-xs text-red-700 sm:px-5">{error}</p> : null}
+      {filter ? <p className="mx-auto w-full max-w-[1600px] px-3 text-[11px] sm:px-5" style={{ color: "#5f6368" }}>Filtered · {visible.length}</p> : null}
+
+      <div className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col overflow-hidden px-3 pb-3 sm:px-5">
+        {!active ? (
+          <p className="m-auto text-sm">Create a client list to upload a CSV.</p>
+        ) : importing ? (
+          <div className="m-auto w-full max-w-2xl rounded-lg border bg-white p-5 shadow-xl" style={{ borderColor: "#dadce0", color: "#202124" }}>
+            <p className="text-sm font-medium">Review import</p>
+            <div className="mt-3 grid grid-cols-[1fr_auto_1fr] gap-2 border-b px-1 py-2 text-xs font-medium uppercase tracking-wide" style={{ borderColor: "#dadce0", color: "#5f6368" }}>
+              <span>Your CSV column</span><span /><span>Tool field</span>
+            </div>
+            <div className="max-h-80 overflow-y-auto">
+              {importing.headers.map((header, index) => (
+                <label key={`${header}-${index}`} className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-1 py-2 text-sm">
+                  <span className="truncate">{header || `Column ${index + 1}`}</span>
+                  <span style={{ color: "#5f6368" }}>→</span>
+                  <select
+                    value={importing.choices[index]}
+                    onChange={(event) => setImporting((current) => current ? { ...current, choices: current.choices.map((choice, choiceIndex) => choiceIndex === index ? event.target.value : choice) } : current)}
+                    className="h-9 w-full rounded border bg-white px-2 text-sm outline-none"
+                    style={{ borderColor: "#dadce0" }}
+                  >
+                    <option value="skip">Skip</option>
+                    <option value="extra">Keep as-is</option>
+                    {CANONICAL.map((field) => <option key={field.label} value={field.label}>{field.label}</option>)}
+                  </select>
+                </label>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <SheetButton onClick={() => setImporting(null)}>Cancel</SheetButton>
+              <SheetButton accent onClick={confirmImport} disabled={pending}>Import</SheetButton>
+            </div>
           </div>
-        </div>
-      ) : null}
-
-      {active && headers.length > 0 ? (
-        <>
-          <Input value={filter} onChange={(event) => setFilter(event.target.value)} placeholder="Filter visible rows" aria-label="Filter rows" className="md:max-w-sm" />
-          <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full min-w-[44rem] border-collapse text-sm">
+        ) : headers.length === 0 ? (
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4">
+            <label className="flex w-full max-w-lg cursor-pointer flex-col items-center justify-center gap-3 rounded border border-dashed bg-white px-6 py-16 text-center" style={{ borderColor: "#dadce0", color: "#202124" }}>
+              <span className="text-sm font-medium">Upload a CSV for this client</span>
+              <span className="text-xs" style={{ color: "#5f6368" }}>It will reopen next time you visit this client tab. Use Clear later to delete and upload a new file.</span>
+              <input type="file" accept=".csv,text/csv" className="sr-only" onChange={(event) => { onFile(event.target.files?.[0] ?? null); event.target.value = ""; }} />
+            </label>
+            <button
+              type="button"
+              className="rounded px-4 py-2 text-sm font-medium text-white"
+              style={{ background: "#1a73e8" }}
+              onClick={() => {
+                remember();
+                void commit(SAMPLE_HEADERS, SAMPLE_ROWS.map((row) => ({ ...row, [ROW_ID]: crypto.randomUUID() })));
+              }}
+            >
+              Load sample data
+            </button>
+          </div>
+        ) : (
+          <div className="sheet-scroll min-h-0 flex-1 overflow-auto rounded border shadow-sm" style={{ borderColor: dark ? "#3c4043" : "#dadce0", background: dark ? "#202124" : "#fff" }}>
+            <table className="border-collapse text-left" style={{ minWidth: "100%" }}>
               <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="p-2">
-                    <input
-                      type="checkbox"
-                      aria-label="Select visible rows"
-                      checked={visible.length > 0 && visible.every((row) => checked.includes(row[ROW_ID] ?? ""))}
-                      onChange={(event) => {
-                        const ids = visible.map((row) => row[ROW_ID] ?? "");
-                        setChecked((current) => (event.target.checked ? [...new Set([...current, ...ids])] : current.filter((id) => !ids.includes(id))));
-                      }}
-                    />
-                  </th>
+                <tr style={{ height: 22 }}>
+                  <th className="sticky left-0 top-0 z-40 w-10 border text-center text-[10px]" style={headStyle(dark)} />
+                  {headers.map((header, index) => (
+                    <th key={`letter-${header}`} className="sticky top-0 z-30 border text-center text-[10px] font-normal" style={headStyle(dark)}>{columnLetter(index)}</th>
+                  ))}
+                </tr>
+                <tr style={{ height: rowHeight }}>
+                  <th className="sticky left-0 z-40 w-10 border text-center text-[10px]" style={{ ...headStyle(dark), top: 22 }}>#</th>
                   {headers.map((header) => (
-                    <th key={header} className="p-2 font-medium">
-                      <span className="flex items-center gap-2">
-                        <input
-                          defaultValue={header}
-                          aria-label={`Rename ${header}`}
-                          className="w-full min-w-28 bg-transparent"
-                          onBlur={async (event) => {
-                            const next = event.target.value;
-                            if (next === header) return;
-                            try {
-                              const sheet = renameHeader(headersRef.current, rowsRef.current, header, next);
-                              await commitSheet(sheet.headers, sheet.rows);
-                            } catch {
-                              event.target.value = header;
-                              setError("That column name is already in the sheet.");
-                            }
-                          }}
-                        />
-                        <button
-                          type="button"
-                          className="text-xs text-muted-foreground"
-                          onClick={async () => {
-                            const sheet = removeHeader(headersRef.current, rowsRef.current, header);
-                            await commitSheet(sheet.headers, sheet.rows);
-                            setMessage(`${header} removed.`);
-                          }}
-                        >
-                          Remove
-                        </button>
-                      </span>
+                    <th key={header} className="sticky z-30 min-w-40 border px-2 text-left text-xs font-medium" style={{ ...headStyle(dark), top: 22 }}>
+                      <button type="button" className="w-full truncate text-left" onClick={(event) => {
+                        const rect = event.currentTarget.getBoundingClientRect();
+                        setMenu({ header, x: rect.left, y: rect.bottom + 4 });
+                      }}>{header}</button>
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {visible.map((row) => {
-                  const id = row[ROW_ID] ?? "";
+                {visible.map((row, rowIndex) => {
+                  const id = row[ROW_ID] ?? String(rowIndex);
+                  const on = checked.includes(id);
                   return (
-                    <tr key={id} className="border-b border-border align-top">
-                      <td className="p-2">
-                        <input
-                          type="checkbox"
-                          aria-label="Select row"
-                          checked={checked.includes(id)}
-                          onChange={(event) =>
-                            setChecked((current) => (event.target.checked ? [...current, id] : current.filter((item) => item !== id)))
-                          }
-                        />
+                    <tr key={id} style={{ height: rowHeight, background: on ? (dark ? "#394457" : "#e8f0fe") : undefined }}>
+                      <td className="sticky left-0 z-10 border text-center" style={{ background: dark ? "#292a2d" : "#f8f9fa", borderColor: dark ? "#3c4043" : "#dadce0" }}>
+                        <button type="button" className="w-full text-[10px]" style={{ color: "#5f6368" }} onClick={(event) => {
+                          if (event.shiftKey && checked.length) {
+                            const ids = visible.map((item) => item[ROW_ID] ?? "");
+                            const start = ids.indexOf(checked[checked.length - 1] ?? "");
+                            const end = ids.indexOf(id);
+                            const [from, to] = start < end ? [start, end] : [end, start];
+                            setChecked([...new Set([...checked, ...ids.slice(from, to + 1)])]);
+                          } else setChecked((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+                        }}>{rowIndex + 1}</button>
                       </td>
-                      {headers.map((header) => (
-                        <td key={header} className="p-2">
-                          <textarea
-                            value={row[header] ?? ""}
-                            rows={Math.min(4, Math.max(1, Math.ceil((row[header] ?? "").length / 28)))}
-                            className="w-full min-w-36 resize-y rounded-md border border-transparent bg-transparent px-1 py-1 hover:border-border focus:border-ring focus:outline-none"
-                            onChange={(event) => {
-                              const value = event.target.value.slice(0, 4000);
-                              const next = rowsRef.current.map((item) => (item[ROW_ID] === id ? { ...item, [header]: value } : item));
-                              rowsRef.current = next;
-                              setRows(next);
-                            }}
-                            onBlur={() => commitSheet(headersRef.current, rowsRef.current)}
-                          />
-                        </td>
-                      ))}
+                      {headers.map((header) => {
+                        const value = row[header] ?? "";
+                        const isEditing = editing?.id === id && editing.header === header;
+                        const isSelected = selected?.id === id && selected.header === header;
+                        return (
+                          <td
+                            key={header}
+                            className="max-w-64 border px-2"
+                            style={{ borderColor: isSelected ? "#1a73e8" : dark ? "#3c4043" : "#e0e0e0", boxShadow: isSelected ? "inset 0 0 0 1px #1a73e8" : undefined }}
+                            onClick={() => setSelected({ id, header })}
+                            onDoubleClick={() => setEditing({ id, header, value })}
+                          >
+                            {isEditing ? (
+                              <input
+                                autoFocus
+                                value={editing.value}
+                                className="w-full bg-transparent text-[13px] outline-none"
+                                onChange={(event) => setEditing({ id, header, value: event.target.value.slice(0, 4000) })}
+                                onBlur={(event) => {
+                                  const value = event.currentTarget.value.slice(0, 4000);
+                                  remember();
+                                  const next = rowsRef.current.map((item) => item[ROW_ID] === id ? { ...item, [header]: value } : item);
+                                  setEditing(null);
+                                  void commit(headersRef.current, next);
+                                }}
+                                onKeyDown={(event) => {
+                                  if (event.key === "Enter") event.currentTarget.blur();
+                                  if (event.key === "Escape") setEditing(null);
+                                }}
+                              />
+                            ) : (
+                              <span className="block truncate" title={value.length > 28 ? value : undefined}>{value}</span>
+                            )}
+                          </td>
+                        );
+                      })}
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
-          {visible.length === 0 ? <p className="text-sm text-muted-foreground">No rows match that filter.</p> : null}
-        </>
+        )}
+      </div>
+
+      {menu ? (
+        <div className="fixed z-[130] w-44 rounded border bg-white py-1 text-left text-sm shadow-lg" style={{ top: menu.y, left: menu.x, borderColor: "#dadce0", color: "#202124" }}>
+          <MenuItem onClick={() => {
+            const next = window.prompt("Rename column", menu.header);
+            setMenu(null);
+            if (!next || next === menu.header) return;
+            try {
+              remember();
+              const sheet = renameHeader(headersRef.current, rowsRef.current, menu.header, next);
+              void commit(sheet.headers, sheet.rows);
+            } catch {
+              setError("That column name is already in the sheet.");
+            }
+          }}>Rename</MenuItem>
+          <MenuItem onClick={() => {
+            remember();
+            const sheet = removeHeader(headersRef.current, rowsRef.current, menu.header);
+            setMenu(null);
+            void commit(sheet.headers, sheet.rows);
+          }}>Remove column</MenuItem>
+        </div>
+      ) : null}
+
+      {appearanceOpen ? (
+        <div className="fixed z-[130] w-56 rounded border bg-white p-3 text-sm shadow-lg" style={{ top: appearancePos.top, left: appearancePos.left, borderColor: "#dadce0", color: "#202124" }}>
+          <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "#5f6368" }}>Theme</p>
+          <div className="mt-2 flex gap-2">
+            <SheetButton onClick={() => setTheme("light")}>Light</SheetButton>
+            <SheetButton onClick={() => setTheme("dark")}>Dark SaaS</SheetButton>
+          </div>
+          <p className="mt-3 text-xs font-medium uppercase tracking-wide" style={{ color: "#5f6368" }}>Density</p>
+          <div className="mt-2 flex gap-2">
+            <SheetButton onClick={() => setDensity("compact")}>Compact</SheetButton>
+            <SheetButton onClick={() => setDensity("comfortable")}>Comfortable</SheetButton>
+          </div>
+          <button type="button" className="mt-3 text-xs" style={{ color: "#1a73e8" }} onClick={() => setAppearanceOpen(false)}>Close</button>
+        </div>
+      ) : null}
+
+      {keysOpen || blockedTool ? (
+        <div className="fixed inset-0 z-[110] flex items-start justify-center bg-black/30 p-6" onClick={() => { setKeysOpen(false); setBlockedTool(""); }}>
+          <div className="mt-10 w-full max-w-lg rounded-xl border bg-white p-5 shadow-xl" style={{ borderColor: "#dadce0", color: "#202124" }} onClick={(event) => event.stopPropagation()}>
+            <p className="text-sm font-medium">{blockedTool || "API keys"}</p>
+            <p className="mt-2 text-sm" style={{ color: "#5f6368" }}>
+              {blockedTool
+                ? `${blockedTool} uses a server key. None is configured, so this desk does not send the sheet to an outside service.`
+                : "Provider keys stay on the server for this company workspace. They are not saved in the browser. Normalize Company and Normalize Titles use built-in rules and do not need a key."}
+            </p>
+            <div className="mt-4 flex justify-end">
+              <SheetButton accent onClick={() => { setKeysOpen(false); setBlockedTool(""); }}>Close</SheetButton>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
+  );
+}
+
+function headStyle(dark: boolean): React.CSSProperties {
+  return {
+    background: dark ? "#2d2e30" : "#f8f9fa",
+    color: dark ? "#9aa0a6" : "#5f6368",
+    borderColor: dark ? "#3c4043" : "#dadce0",
+  };
+}
+
+function SheetButton({
+  children,
+  onClick,
+  disabled,
+  title,
+  accent,
+  type = "button",
+  buttonRef,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  title?: string;
+  accent?: boolean;
+  type?: "button" | "submit";
+  buttonRef?: React.Ref<HTMLButtonElement>;
+}) {
+  return (
+    <button
+      ref={buttonRef}
+      type={type}
+      title={title}
+      disabled={disabled}
+      onClick={onClick}
+      className="shrink-0 rounded border px-2.5 py-1 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40"
+      style={accent ? { borderColor: "#1a73e8", background: "#1a73e8", color: "#fff" } : { borderColor: "#dadce0", background: "#fff", color: "#202124" }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function MenuItem({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+  return (
+    <button type="button" className="block w-full px-3 py-1.5 text-left hover:bg-[#f1f3f4]" onClick={onClick}>
+      {children}
+    </button>
   );
 }
