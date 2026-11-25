@@ -1,0 +1,30 @@
+# Current state
+
+Updated 25 November 2026, 23:10 Asia/Shanghai.
+
+## Working
+
+- Invite-only sign-in, email verification, logout, and the signed-in name and email.
+- Admin, Manager, and Sales, enforced in Postgres and in the pages.
+- Sample workspace, clearly fictional. Sample admin has no one-click sign-in.
+- Lead Enrichment sheet for every signed-in person: import, map, edit, filter, undo, export.
+- Shared lists in the company database. They remain after the tab closes.
+- Normalize Company and Normalize Titles, including from the column menu.
+- Three-dot column menu: run, prompt, insert, filter, rename, freeze, remove.
+- Add to pipeline for Manager and Admin.
+- Supabase project Realynk CRM is signed in and healthy.
+
+## Open
+
+- A column run still lives in the browser. Closing the computer stops it. Supabase is connected and not yet used as the worker.
+- Industry, email verification, ICP, and custom prompt runs do not call out. No server key is configured.
+- Publish is on hold. The company email domain is not set, so sample mode remains.
+- On a narrow phone, the Leads stage badge can clip inside the table.
+
+## Do not regress
+
+- Hover and long-cell editing stay portaled, not clipped inside the sheet.
+- Renaming a column keeps its name. Do not add a " 2".
+- Deleted columns stay deleted. Do not re-add enrichment columns on load.
+- The sample admin stays locked. Do not add a passwordless public admin.
+- Do not hardcode a company email domain.
