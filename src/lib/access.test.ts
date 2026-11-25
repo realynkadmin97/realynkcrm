@@ -28,7 +28,17 @@ test("sample sales only sees assigned leads and cannot reassign them", async () 
   const priya = directory.get("priya.shah@sample.invalid");
   const luis = directory.get("luis.ortega@sample.invalid");
   const morgan = directory.get("morgan.ellis@sample.invalid");
-  assert.ok(priya && luis && morgan);
+  const avery = directory.get("avery.chen@sample.invalid");
+  assert.ok(priya && luis && morgan && avery);
+
+  await assert.rejects(
+    () =>
+      queryAuth("select private.open_sample_session($1, $2, now() + interval '1 hour')", [
+        avery.id,
+        hashToken(newToken()),
+      ]),
+    /CRM:not_allowed/,
+  );
 
   const priyaLeads = await withUser(priya.id, (query) => query("select company from leads order by company"));
   assert.deepEqual(
@@ -56,6 +66,28 @@ test("sample sales only sees assigned leads and cannot reassign them", async () 
     () => withUser(priya.id, (query) => query("select password_hash from user_credentials")),
     /permission denied/i,
   );
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    await queryAuth("select private.open_sample_session($1, $2, now() + interval '1 hour')", [
+      priya.id,
+      hashToken(newToken()),
+    ]);
+  }
+  const openSessions = await queryAuth<{ count: number }>("select count(*)::int as count from sessions where user_id = $1", [
+    priya.id,
+  ]);
+  assert.ok(Number(openSessions[0]?.count) <= 3);
+
+  await queryAuth(
+    "insert into sessions (token_hash, user_id, expires_at, created_at) values ($1, $2, now() - interval '1 minute', now() - interval '2 days')",
+    [hashToken(newToken()), priya.id],
+  );
+  await queryAuth("select private.open_sample_session($1, $2, now() + interval '1 hour')", [priya.id, hashToken(newToken())]);
+  const expired = await queryAuth<{ count: number }>(
+    "select count(*)::int as count from sessions where user_id = $1 and expires_at <= now()",
+    [priya.id],
+  );
+  assert.equal(Number(expired[0]?.count), 0);
 });
 
 test("a manager sees sales reps, assigns an open lead, and cannot change settings", async () => {

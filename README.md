@@ -6,7 +6,7 @@ Internal CRM for Realynk leads, opportunities, and sales activity. Sign-in is li
 
 The company email domain is **not set in this project**. The app does not guess it.
 
-Until `REALYNK_EMAIL_DOMAIN` is set, the CRM opens a labeled sample workspace. The sample people are fictional and are the only accounts that can sign in. Setting the domain turns sample mode off, disables those accounts, and requires a verified company email.
+Until `REALYNK_EMAIL_DOMAIN` is set, the CRM opens a labeled sample workspace. The sample people are fictional. Sales and manager sample accounts can be opened from the login page. The sample admin is listed and cannot be opened that way. Setting the domain turns sample mode off, disables those accounts, and requires a verified company email.
 
 Copy `.env.example` to `.env.local` when you are ready to enforce the domain:
 

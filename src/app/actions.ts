@@ -1,30 +1,12 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect, unstable_rethrow } from "next/navigation";
 import { can, destroySession, openPasswordSession, openSampleSession, permissionsFor, requireUser, safeNext } from "@/lib/auth";
 import { hashPassword, hashToken, newToken } from "@/lib/crypto";
 import { queryAuth, withUser } from "@/lib/db";
 import { crmError } from "@/lib/errors";
 import { isRole, isStage } from "@/lib/labels";
-
-const attempts = new Map<string, { count: number; resetAt: number }>();
-
-function rateLimit(key: string, limit = 8) {
-  const now = Date.now();
-  const current = attempts.get(key);
-  if (!current || current.resetAt < now) {
-    attempts.set(key, { count: 1, resetAt: now + 10 * 60 * 1000 });
-    return true;
-  }
-  current.count += 1;
-  return current.count <= limit;
-}
-
-async function clientKey(suffix: string) {
-  const forwarded = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  return `${suffix}:${forwarded.slice(0, 80)}`;
-}
+import { allow } from "@/lib/throttle";
 
 function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -32,7 +14,7 @@ function isUuid(value: string) {
 
 export async function signInSample(formData: FormData) {
   const userId = String(formData.get("userId") ?? "");
-  if (!isUuid(userId) || !(await rateLimit(await clientKey("sample")))) redirect("/login?error=sample");
+  if (!isUuid(userId) || !allow("sample")) redirect("/login?error=sample");
   try {
     await openSampleSession(userId);
   } catch {
@@ -45,9 +27,10 @@ export async function signIn(_previous: { error: string } | null, formData: Form
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const next = safeNext(String(formData.get("next") ?? ""));
-  if (!email || !password || !(await rateLimit(`login:${email}`))) {
+  if (!email || email.length > 254 || !email.includes("@") || password.length < 1 || password.length > 128) {
     return { error: "That email and password could not be signed in. Use a verified company account." };
   }
+  if (!allow("login")) return { error: "Sign-in is busy. Wait a minute and try again." };
   const ok = await openPasswordSession(email, password).catch(() => false);
   if (!ok) return { error: "That email and password could not be signed in. Use a verified company account." };
   redirect(next);
@@ -223,7 +206,7 @@ export async function inviteUser(
   const user = await requireUser();
   const permissions = await permissionsFor(user);
   if (!can(permissions, "users.manage")) return { error: "You do not have permission to invite people." };
-  if (!(await rateLimit(await clientKey("invite"), 20))) return { error: "Too many invites. Wait a few minutes." };
+  if (!allow("invite")) return { error: "Too many invites. Wait a few minutes." };
   const fullName = String(formData.get("fullName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const role = String(formData.get("role") ?? "");
@@ -260,8 +243,8 @@ export async function updateMember(formData: FormData) {
     if (!rows.length) redirect("/people?error=forbidden");
   } catch (error) {
     unstable_rethrow(error);
-    const code = crmError(error);
-    redirect(`/people?error=${encodeURIComponent(code)}`);
+    const message = error instanceof Error ? error.message : "";
+    redirect(`/people?error=${/CRM:last_admin/.test(message) ? "last_admin" : "forbidden"}`);
   }
   redirect("/people?notice=saved");
 }
@@ -286,7 +269,7 @@ export async function acceptInvite(
   _previous: { error?: string; done?: boolean } | null,
   formData: FormData,
 ): Promise<{ error?: string; done?: boolean }> {
-  if (!(await rateLimit(await clientKey("verify"), 12))) {
+  if (!allow("verify")) {
     return { error: "Too many attempts. Wait a few minutes and open the link again." };
   }
   const token = String(formData.get("token") ?? "");

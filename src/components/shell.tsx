@@ -104,8 +104,9 @@ export function Flash({ notice, error }: { notice?: string; error?: string }) {
   const errors: Record<string, string> = {
     forbidden: "You do not have permission to do that.",
     invalid: "Check the form and try again.",
+    last_admin: "The workspace needs at least one active admin.",
   };
-  const text = (notice && notices[notice]) || (error && (errors[error] || (error.length < 180 ? error : "")));
+  const text = (notice && notices[notice]) || (error && errors[error]) || "";
   if (!text) return null;
   const bad = Boolean(error);
   return (

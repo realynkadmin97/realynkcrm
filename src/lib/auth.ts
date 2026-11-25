@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { dummyPasswordHash, hashToken, newToken, verifyPassword } from "@/lib/crypto";
 import { configError, queryAuth, withUser, type SqlRow } from "@/lib/db";
 import { isRole, type Role } from "@/lib/labels";
+import { safeNext } from "@/lib/safe-next";
+
+export { safeNext };
 
 const COOKIE = "crm_session";
 const MAX_AGE = 60 * 60 * 12;
@@ -34,13 +37,6 @@ function mapUser(row: SqlRow): SessionUser {
     sampleMode: Boolean(row.sample_mode),
     emailDomain: row.email_domain == null ? null : String(row.email_domain),
   };
-}
-
-export function safeNext(value: string | null | undefined) {
-  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\") || value.startsWith("/login")) {
-    return "/";
-  }
-  return value;
 }
 
 export async function workspaceStatus(): Promise<WorkspaceStatus> {

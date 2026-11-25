@@ -51,12 +51,16 @@ export default async function LoginPage({
                   </CardHeader>
                   <CardContent className="flex items-center justify-between gap-3">
                     <Badge variant="outline">{role?.label ?? person.role}</Badge>
-                    <form action={signInSample}>
-                      <input type="hidden" name="userId" value={person.id} />
-                      <Button type="submit" size="sm">
-                        Continue
-                      </Button>
-                    </form>
+                    {person.role === "admin" ? (
+                      <p className="max-w-40 text-right text-xs text-muted-foreground">Company account required. No public sign-in.</p>
+                    ) : (
+                      <form action={signInSample}>
+                        <input type="hidden" name="userId" value={person.id} />
+                        <Button type="submit" size="sm">
+                          Continue
+                        </Button>
+                      </form>
+                    )}
                   </CardContent>
                 </Card>
               );
