@@ -11,6 +11,9 @@ const MESSAGES: Record<string, string> = {
   "CRM:invalid_domain": "The configured company email domain is not valid.",
   "CRM:bootstrap_domain": "The bootstrap admin email does not match the configured company domain.",
   "CRM:forbidden": "You do not have permission to do that.",
+  "CRM:sheet_too_large": "That sheet is too large. Keep it to 500 rows and 40 columns.",
+  "CRM:duplicate_column": "Two columns would share the same name. Skip one or keep it as an extra column.",
+  "CRM:busy": "The cleaner is busy. Wait a minute and try again.",
 };
 
 export function crmError(error: unknown, fallback = "That change could not be saved.") {

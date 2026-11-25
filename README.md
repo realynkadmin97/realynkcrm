@@ -17,6 +17,12 @@ Copy `.env.example` to `.env.local` when you are ready to enforce the domain:
 
 The bootstrap admin is created already verified, because you set the password yourself. Every later person is invited by an admin, gets a one-time verification link, and chooses a password before they can sign in. The link is shown to the admin to send on; this app does not include an email provider.
 
+## Lead cleaner
+
+Signed-in teammates share lead lists in the company database. Import a CSV, match the columns, edit the sheet, then normalize company names and titles. Export a CSV when the list is ready. Managers and admins can add rows that have a name, company, and email into the lead pipeline.
+
+Industry lookup, email verification, and ICP scoring are not connected. The cleaner does not call outside services and does not keep provider keys in the browser.
+
 ## Roles
 
 | Role | Access |

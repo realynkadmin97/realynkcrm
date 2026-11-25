@@ -119,6 +119,39 @@ test("a manager sees sales reps, assigns an open lead, and cannot change setting
   assert.equal(Number(adminSettings[0]?.stale_after_days), 9);
 });
 
+test("a signed-in teammate can read a shared cleaner list and cannot hide it from the workspace", async () => {
+  const directory = await usersByEmail();
+  const priya = directory.get("priya.shah@sample.invalid");
+  const morgan = directory.get("morgan.ellis@sample.invalid");
+  assert.ok(priya && morgan);
+
+  const shared = await withUser(priya.id, (query) => query("select name from cleaner_lists"));
+  assert.deepEqual(
+    shared.map((row) => row.name),
+    ["Outbound clinics"],
+  );
+
+  const saved = await withUser(priya.id, (query) =>
+    query(
+      `update cleaner_lists set rows = $2::jsonb where name = $1 returning name`,
+      ["Outbound clinics", JSON.stringify([{ __id: "row-1", Company: "Northwind" }])],
+    ),
+  );
+  assert.equal(saved[0]?.name, "Outbound clinics");
+
+  await assert.rejects(
+    () =>
+      withUser(morgan.id, (query) =>
+        query(
+          `insert into cleaner_lists (name, headers, rows, created_by, is_sample)
+           values ('Hidden', '[]'::jsonb, '[]'::jsonb, $1, false) returning id`,
+          [morgan.id],
+        ),
+      ),
+    /row-level security/i,
+  );
+});
+
 test("company domain comes from configuration and blocks other emails", async () => {
   const directory = await usersByEmail();
   const priya = directory.get("priya.shah@sample.invalid");
@@ -133,6 +166,8 @@ test("company domain comes from configuration and blocks other emails", async ()
 
   const sampleLeads = await withUser(priya.id, (query) => query("select id from leads"));
   assert.equal(sampleLeads.length, 0);
+  const sampleLists = await withUser(priya.id, (query) => query("select id from cleaner_lists"));
+  assert.equal(sampleLists.length, 0);
 
   await assert.rejects(
     () =>

@@ -6,6 +6,7 @@ const LIMITS = {
   sample: 30,
   invite: 20,
   verify: 12,
+  sheet: 240,
 } as const;
 
 export type ThrottleBucket = keyof typeof LIMITS;

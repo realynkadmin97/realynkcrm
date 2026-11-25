@@ -12,6 +12,7 @@ const LINKS = [
     label: "Leads",
     allow: (permissions: string[]) => can(permissions, "leads.view_all") || can(permissions, "leads.view_assigned"),
   },
+  { href: "/clean", label: "Cleaner", allow: () => true },
   {
     href: "/opportunities",
     label: "Opportunities",

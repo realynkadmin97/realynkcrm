@@ -7,7 +7,7 @@
     "build": "next build && node scripts/migrate.mjs",
     "start": "next start --hostname 127.0.0.1 --port 4317",
     "lint": "eslint",
-    "test": "tsx --test src/lib/access.test.ts src/lib/safe-next.test.ts src/lib/throttle.test.ts"
+    "test": "tsx --test src/lib/access.test.ts src/lib/safe-next.test.ts src/lib/throttle.test.ts src/lib/cleaner.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
