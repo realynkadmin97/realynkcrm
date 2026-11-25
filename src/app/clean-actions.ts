@@ -2,6 +2,7 @@
 
 import { can, permissionsFor, requireUser } from "@/lib/auth";
 import { deleteCleanerList, insertCleanerList, promoteCleanerRows, updateCleanerList } from "@/lib/cleaner-store";
+import type { CleanerMeta } from "@/lib/sheet-meta";
 import { crmError } from "@/lib/errors";
 import { allow } from "@/lib/throttle";
 
@@ -24,11 +25,11 @@ export async function createCleanerList(name: string) {
   }
 }
 
-export async function saveCleanerList(input: { id: string; name: string; headers: string[]; rows: Record<string, string>[] }) {
+export async function saveCleanerList(input: { id: string; name: string; headers: string[]; rows: Record<string, string>[]; meta?: CleanerMeta }) {
   const user = await requireUser();
   if (!isUuid(input.id) || !allow("sheet")) return busy();
   try {
-    await updateCleanerList(user.id, input.id, input.name, input.headers, input.rows);
+    await updateCleanerList(user.id, input.id, input.name, input.headers, input.rows, input.meta);
     return { ok: true as const };
   } catch (error) {
     return { error: crmError(error, "That sheet could not be saved.") };
