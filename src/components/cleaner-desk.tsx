@@ -89,6 +89,9 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
   const pastRef = useRef<Snap[]>([]);
   const futureRef = useRef<Snap[]>([]);
   const appearanceRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const appearancePanelRef = useRef<HTMLDivElement>(null);
+  const cancelEditRef = useRef(false);
   const [appearancePos, setAppearancePos] = useState({ top: 0, left: 0 });
 
   const visible = useMemo(() => {
@@ -98,12 +101,37 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
   }, [filter, headers, rows]);
 
   useEffect(() => {
-    function close() {
+    if (!menu && !appearanceOpen) return;
+    function dismiss(target: EventTarget | null) {
+      const node = target instanceof Node ? target : null;
+      if (node && menuRef.current?.contains(node)) return;
+      if (node && appearancePanelRef.current?.contains(node)) return;
+      if (node instanceof Element && node.closest("[data-column-menu]")) return;
+      if (node && appearanceRef.current?.contains(node)) return;
       setMenu(null);
+      setAppearanceOpen(false);
     }
-    window.addEventListener("scroll", close, true);
-    return () => window.removeEventListener("scroll", close, true);
-  }, []);
+    function onPointerDown(event: PointerEvent) {
+      dismiss(event.target);
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenu(null);
+        setAppearanceOpen(false);
+      }
+    }
+    function onScroll() {
+      dismiss(null);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, true);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll, true);
+    };
+  }, [menu, appearanceOpen]);
 
   function remember() {
     pastRef.current = [...pastRef.current.slice(-39), { name: nameRef.current, headers: headersRef.current, rows: rowsRef.current }];
@@ -324,12 +352,13 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
               onClick={() => {
                 const rect = appearanceRef.current?.getBoundingClientRect();
                 if (rect) setAppearancePos({ top: rect.bottom + 4, left: Math.max(8, rect.right - 220) });
+                setMenu(null);
                 setAppearanceOpen((open) => !open);
               }}
             >
               Appearance
             </SheetButton>
-            <SheetButton onClick={() => setKeysOpen(true)}>API keys</SheetButton>
+            <SheetButton onClick={() => { setMenu(null); setKeysOpen(true); }}>API keys</SheetButton>
           </div>
         </div>
       </header>
@@ -367,10 +396,10 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
         <div className="mx-auto flex w-full max-w-[1600px] shrink-0 items-center gap-2 overflow-x-auto px-3 pb-2 sm:px-5">
           <SheetButton onClick={() => enqueue("Company")}>Normalize Company</SheetButton>
           <SheetButton onClick={() => enqueue("Title")}>Normalize Titles</SheetButton>
-          <SheetButton onClick={() => setBlockedTool("Scrape Industry")}>Scrape Industry</SheetButton>
-          <SheetButton onClick={() => setBlockedTool("Verify Email")}>Verify Email</SheetButton>
-          <SheetButton onClick={() => setBlockedTool("ICP Score")}>ICP Score</SheetButton>
-          <SheetButton onClick={() => setBlockedTool("Custom Research")}>Custom Research</SheetButton>
+            <SheetButton onClick={() => { setMenu(null); setBlockedTool("Scrape Industry"); }}>Scrape Industry</SheetButton>
+          <SheetButton onClick={() => { setMenu(null); setBlockedTool("Verify Email"); }}>Verify Email</SheetButton>
+          <SheetButton onClick={() => { setMenu(null); setBlockedTool("ICP Score"); }}>ICP Score</SheetButton>
+          <SheetButton onClick={() => { setMenu(null); setBlockedTool("Custom Research"); }}>Custom Research</SheetButton>
           <SheetButton onClick={download} disabled={!rows.length}>Export</SheetButton>
           <SheetButton
             onClick={() => {
@@ -471,7 +500,11 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
           </div>
         ) : (
           <div className="sheet-scroll min-h-0 flex-1 overflow-auto rounded border shadow-sm" style={{ borderColor: dark ? "#3c4043" : "#dadce0", background: dark ? "#202124" : "#fff" }}>
-            <table className="border-collapse text-left" style={{ minWidth: "100%" }}>
+            <table className="border-collapse text-left" style={{ tableLayout: "fixed", width: Math.max(720, 40 + headers.length * 176) }}>
+              <colgroup>
+                <col style={{ width: 40 }} />
+                {headers.map((header) => <col key={header} style={{ width: 176 }} />)}
+              </colgroup>
               <thead>
                 <tr style={{ height: 22 }}>
                   <th className="sticky left-0 top-0 z-40 w-10 border text-center text-[10px]" style={headStyle(dark)} />
@@ -482,11 +515,16 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
                 <tr style={{ height: rowHeight }}>
                   <th className="sticky left-0 z-40 w-10 border text-center text-[10px]" style={{ ...headStyle(dark), top: 22 }}>#</th>
                   {headers.map((header) => (
-                    <th key={header} className="sticky z-30 min-w-40 border px-2 text-left text-xs font-medium" style={{ ...headStyle(dark), top: 22 }}>
-                      <button type="button" className="w-full truncate text-left" onClick={(event) => {
-                        const rect = event.currentTarget.getBoundingClientRect();
-                        setMenu({ header, x: rect.left, y: rect.bottom + 4 });
-                      }}>{header}</button>
+                    <th key={header} className="sticky z-30 border px-2 text-left text-xs font-medium" style={{ ...headStyle(dark), top: 22 }}>
+                      <button
+                        type="button"
+                        data-column-menu=""
+                        className="w-full truncate text-left"
+                        onClick={(event) => {
+                          const rect = event.currentTarget.getBoundingClientRect();
+                          setMenu((current) => current?.header === header ? null : { header, x: rect.left, y: rect.bottom + 4 });
+                        }}
+                      >{header}</button>
                     </th>
                   ))}
                 </tr>
@@ -515,7 +553,7 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
                         return (
                           <td
                             key={header}
-                            className="max-w-64 border px-2"
+                            className="border px-2"
                             style={{ borderColor: isSelected ? "#1a73e8" : dark ? "#3c4043" : "#e0e0e0", boxShadow: isSelected ? "inset 0 0 0 1px #1a73e8" : undefined }}
                             onClick={() => setSelected({ id, header })}
                             onDoubleClick={() => setEditing({ id, header, value })}
@@ -527,6 +565,11 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
                                 className="w-full bg-transparent text-[13px] outline-none"
                                 onChange={(event) => setEditing({ id, header, value: event.target.value.slice(0, 4000) })}
                                 onBlur={(event) => {
+                                  if (cancelEditRef.current) {
+                                    cancelEditRef.current = false;
+                                    setEditing(null);
+                                    return;
+                                  }
                                   const value = event.currentTarget.value.slice(0, 4000);
                                   remember();
                                   const next = rowsRef.current.map((item) => item[ROW_ID] === id ? { ...item, [header]: value } : item);
@@ -535,7 +578,10 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
                                 }}
                                 onKeyDown={(event) => {
                                   if (event.key === "Enter") event.currentTarget.blur();
-                                  if (event.key === "Escape") setEditing(null);
+                                  if (event.key === "Escape") {
+                                    cancelEditRef.current = true;
+                                    event.currentTarget.blur();
+                                  }
                                 }}
                               />
                             ) : (
@@ -554,7 +600,7 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
       </div>
 
       {menu ? (
-        <div className="fixed z-[130] w-44 rounded border bg-white py-1 text-left text-sm shadow-lg" style={{ top: menu.y, left: menu.x, borderColor: "#dadce0", color: "#202124" }}>
+        <div ref={menuRef} className="fixed z-[130] w-44 rounded border bg-white py-1 text-left text-sm shadow-lg" style={{ top: menu.y, left: menu.x, borderColor: "#dadce0", color: "#202124" }}>
           <MenuItem onClick={() => {
             const next = window.prompt("Rename column", menu.header);
             setMenu(null);
@@ -577,7 +623,7 @@ export function CleanerDesk({ initialLists, canPromote }: { initialLists: Cleane
       ) : null}
 
       {appearanceOpen ? (
-        <div className="fixed z-[130] w-56 rounded border bg-white p-3 text-sm shadow-lg" style={{ top: appearancePos.top, left: appearancePos.left, borderColor: "#dadce0", color: "#202124" }}>
+        <div ref={appearancePanelRef} className="fixed z-[130] w-56 rounded border bg-white p-3 text-sm shadow-lg" style={{ top: appearancePos.top, left: appearancePos.left, borderColor: "#dadce0", color: "#202124" }}>
           <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "#5f6368" }}>Theme</p>
           <div className="mt-2 flex gap-2">
             <SheetButton onClick={() => setTheme("light")}>Light</SheetButton>
