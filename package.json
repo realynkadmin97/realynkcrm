@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1 --port 4317",
-    "build": "next build && node scripts/migrate.mjs",
+    "build": "next build",
+    "migrate": "node scripts/migrate.mjs",
     "start": "next start --hostname 127.0.0.1 --port 4317",
     "lint": "eslint",
     "test": "tsx --test src/lib/access.test.ts src/lib/safe-next.test.ts src/lib/throttle.test.ts src/lib/cleaner.test.ts src/lib/env.test.ts"

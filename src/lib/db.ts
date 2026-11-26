@@ -56,17 +56,52 @@ async function applyRuntimeConfig() {
   }
 }
 
+async function migrationFiles() {
+  const directory = path.join(process.cwd(), "migrations");
+  return (await readdir(directory).catch(() => [])).filter((file) => file.endsWith(".sql")).sort();
+}
+
+async function applyPoolMigrations(pool: pg.Pool) {
+  const files = await migrationFiles();
+  if (files.length === 0) return;
+  const client = await pool.connect();
+  try {
+    await client.query("create table if not exists schema_migrations (name text primary key, applied_at timestamptz not null default now())");
+    const done = new Set(
+      (await client.query<{ name: string }>("select name from schema_migrations")).rows.map((row) => row.name),
+    );
+    for (const file of files.filter((name) => !done.has(name))) {
+      const sql = await readFile(path.join(process.cwd(), "migrations", file), "utf8");
+      await client.query("begin");
+      try {
+        await client.query(sql);
+        await client.query("insert into schema_migrations (name) values ($1)", [file]);
+        await client.query("commit");
+      } catch (error) {
+        await client.query("rollback");
+        throw error;
+      }
+    }
+  } finally {
+    client.release();
+  }
+}
+
 async function start() {
   const current = holder();
   if (databaseUrl()) {
-    current.pool = new pg.Pool({ connectionString: databaseUrl(), max: 5 });
+    const url = databaseUrl();
+    current.pool = new pg.Pool({
+      connectionString: url,
+      max: 5,
+      ssl: url.includes("supabase") || url.includes("sslmode=require") ? { rejectUnauthorized: false } : undefined,
+    });
+    await applyPoolMigrations(current.pool);
   } else {
     const db = new PGlite();
     current.pglite = db;
-    const directory = path.join(process.cwd(), "migrations");
-    const files = (await readdir(directory).catch(() => [])).filter((file) => file.endsWith(".sql")).sort();
-    for (const file of files) {
-      await db.exec(await readFile(path.join(directory, file), "utf8"));
+    for (const file of await migrationFiles()) {
+      await db.exec(await readFile(path.join(process.cwd(), "migrations", file), "utf8"));
     }
   }
   await applyRuntimeConfig();
