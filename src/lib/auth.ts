@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { dummyPasswordHash, hashToken, newToken, verifyPassword } from "@/lib/crypto";
 import { configError, queryAuth, withUser, type SqlRow } from "@/lib/db";
 import { isRole, type Role } from "@/lib/labels";
+import { permissionsForRole } from "@/lib/permissions";
 import { safeNext } from "@/lib/safe-next";
 
 export { safeNext };
@@ -125,13 +126,8 @@ export async function requireUser() {
 }
 
 export async function permissionsFor(user: SessionUser) {
-  // Use the table-owner connection (not crm_app) so the Harbor layout can render
-  // even if SET ROLE is still settling on hosted Postgres.
-  const rows = await queryAuth(
-    "select permission from role_permissions where role = $1 order by permission",
-    [user.role],
-  );
-  return rows.map((row) => String(row.permission));
+  // Static grants — no DB call. Harbor layout must not depend on SET ROLE / RLS.
+  return permissionsForRole(user.role);
 }
 
 export function can(permissions: string[], permission: string) {
