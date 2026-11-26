@@ -18,6 +18,9 @@ export default function AppError({
         {error.message ? (
           <p className="mt-4 rounded-2xl bg-[#0543b8]/5 px-3 py-2 text-xs break-all text-[#0543b8]">{error.message}</p>
         ) : null}
+        {error.digest ? (
+          <p className="mt-2 text-xs text-[#000851]/45">Reference: {error.digest}</p>
+        ) : null}
         <button
           type="button"
           onClick={reset}

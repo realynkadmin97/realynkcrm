@@ -181,7 +181,8 @@ export async function withUser<T>(userId: string, fn: (query: QueryFn) => Promis
         return result;
       } catch (error) {
         await client.query("rollback");
-        throw error;
+        const detail = error instanceof Error ? error.message.replace(/\s+/g, " ").slice(0, 160) : "query_failed";
+        throw new Error(`CRM:desk:${detail}`);
       }
     } finally {
       client.release();
@@ -189,34 +190,55 @@ export async function withUser<T>(userId: string, fn: (query: QueryFn) => Promis
   }
   if (!current.pglite) throw new Error("CRM:database_unavailable");
   return current.pglite.transaction(async (tx) => {
-    await tx.exec("set local role crm_app");
+    try {
+      await tx.exec("set local role crm_app");
+    } catch {
+      // Local PGlite still serves the desk as the connection owner when role switch fails.
+    }
     await tx.query("select set_config('app.user_id', $1, true)", [userId]);
     return fn(async (text, params = []) => (await tx.query<SqlRow>(text, params)).rows);
   });
 }
 
-async function assumeCrmApp(client: pg.PoolClient) {
+/** Run a statement inside a savepoint so a failure does not abort the outer transaction. */
+async function tryInSavepoint(client: pg.PoolClient, label: string, sql: string, params: unknown[] = []) {
+  await client.query(`savepoint ${label}`);
   try {
-    await client.query("select private.ensure_crm_app_grant()");
+    const result = await client.query(sql, params);
+    await client.query(`release savepoint ${label}`);
+    return result;
+  } catch (error) {
+    await client.query(`rollback to savepoint ${label}`);
+    throw error;
+  }
+}
+
+async function assumeCrmApp(client: pg.PoolClient) {
+  // Every fallible setup step uses a savepoint. A bare failed SET ROLE inside BEGIN
+  // would abort the whole transaction and break every desk query afterward.
+  try {
+    await tryInSavepoint(client, "crm_grant_fn", "select private.ensure_crm_app_grant()");
   } catch {
     // Helper may be absent until migrations finish.
   }
+
   try {
-    await client.query("set local role crm_app");
+    await tryInSavepoint(client, "crm_set_role", "set local role crm_app");
     const who = await client.query<{ current_user: string }>("select current_user");
     if (who.rows[0]?.current_user === "crm_app") return;
   } catch {
     // continue to grant retry
   }
+
   try {
-    await client.query("grant crm_app to current_user");
-    await client.query("set local role crm_app");
+    await tryInSavepoint(client, "crm_grant_user", "grant crm_app to current_user");
+    await tryInSavepoint(client, "crm_set_role2", "set local role crm_app");
     const who = await client.query<{ current_user: string }>("select current_user");
     if (who.rows[0]?.current_user === "crm_app") return;
   } catch {
-    // Hosted Postgres (e.g. Supabase) may not allow SET ROLE yet.
+    // Hosted Postgres (e.g. Supabase) may not allow SET ROLE.
     // Continue as the connection owner so the desk can load for the bootstrap admin.
-    // RLS policies target crm_app; owner connections bypass RLS unless FORCE RLS is on.
+    // Table owners bypass RLS unless FORCE ROW LEVEL SECURITY is on.
   }
 }
 

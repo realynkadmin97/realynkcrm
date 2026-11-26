@@ -9,7 +9,20 @@ import { ROLE_COPY, stageLabel } from "@/lib/labels";
 export default async function TodayPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const user = await requireUser();
   const query = await searchParams;
-  const data = await dashboard(user.id);
+  let data: Awaited<ReturnType<typeof dashboard>>;
+  let deskError: string | undefined;
+  try {
+    data = await dashboard(user.id);
+  } catch (error) {
+    deskError = error instanceof Error ? error.message : "CRM:desk_unavailable";
+    data = {
+      stages: [],
+      openOpportunities: 0,
+      openAmount: "0",
+      stale: [],
+      tasks: [],
+    };
+  }
   const counts = new Map(data.stages.map((row) => [row.stage, row.count]));
   const stages = ["new", "qualified", "meeting", "proposal"] as const;
 
@@ -20,6 +33,9 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         title={`Good to see you, ${user.fullName.split(" ")[0]}`}
         detail={`${ROLE_COPY[user.role].summary} Dates on this desk are shown in Shanghai time.`}
       />
+      {deskError ? (
+        <p className="mb-4 rounded-2xl bg-destructive/10 px-3 py-2 text-sm text-destructive">{deskError}</p>
+      ) : null}
       <Flash error={query.error} />
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

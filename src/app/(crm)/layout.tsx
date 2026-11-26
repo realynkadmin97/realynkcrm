@@ -5,7 +5,13 @@ export const dynamic = "force-dynamic";
 
 export default async function CrmLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
-  const permissions = await permissionsFor(user);
+  let permissions: string[] = [];
+  try {
+    permissions = await permissionsFor(user);
+  } catch {
+    // Desk chrome still loads; module links stay limited until permissions recover.
+    permissions = [];
+  }
   return (
     <Shell user={user} permissions={permissions}>
       {children}
