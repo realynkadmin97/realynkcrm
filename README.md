@@ -44,3 +44,12 @@ npm run dev
 ```
 
 Open http://127.0.0.1:4317. Unauthenticated visits go to the login page. The sidebar shows the signed-in name and email, and Log out ends the session.
+
+Landing samples (no password):
+
+- http://127.0.0.1:4317/landing
+- http://127.0.0.1:4317/landing/threshold
+- http://127.0.0.1:4317/landing/partnership
+- http://127.0.0.1:4317/landing/desk
+
+The real sign-in is http://127.0.0.1:4317/login.
