@@ -1,9 +1,7 @@
-import { signInSample } from "@/app/actions";
 import { LoginForm } from "@/app/login/login-form";
 import { BrandStage } from "@/components/brand-stage";
 import { ReaPanel } from "@/components/rea-panel";
-import { readSession, sampleDirectory, safeNext, workspaceStatus } from "@/lib/auth";
-import { ROLE_COPY, isRole } from "@/lib/labels";
+import { readSession, safeNext, workspaceStatus } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 export default async function LoginPage({
@@ -15,9 +13,9 @@ export default async function LoginPage({
   if (user) redirect("/");
   const query = await searchParams;
   const status = await workspaceStatus();
-  const samples = status.sampleMode ? await sampleDirectory() : [];
   const next = safeNext(query.next);
   const domainRejected = status.configError?.includes("CRM:invalid_domain");
+  const canPasswordSignIn = status.sampleMode || status.hasActiveAdmin;
 
   return (
     <BrandStage>
@@ -43,56 +41,19 @@ export default async function LoginPage({
 
             {domainRejected ? (
               <p className="relative mb-4 rounded-xl bg-accent px-3 py-2 text-sm text-foreground">
-                The company email domain in the server configuration is not valid, so the workspace is still using sample accounts.
+                The company email domain in the server configuration is not valid yet.
               </p>
             ) : null}
-            {query.error === "sample" ? (
-              <p className="relative mb-4 text-sm text-destructive">That sample account could not be opened.</p>
-            ) : null}
 
-            {status.sampleMode ? (
-              <div className="relative">
-                <h1 className="text-2xl font-bold">Sample sign-in</h1>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  No company email domain is configured. These fictional accounts let you walk the CRM. They are not Realynk employees, and they disappear once the domain is set.
-                </p>
-                <ul className="mt-6 space-y-3">
-                  {samples.map((person) => {
-                    const role = isRole(person.role) ? ROLE_COPY[person.role] : null;
-                    return (
-                      <li
-                        key={person.id}
-                        className="flex items-center justify-between gap-3 rounded-xl border border-primary/20 bg-[#f3f7ff]/70 px-4 py-3"
-                      >
-                        <div>
-                          <p className="font-bold">{person.full_name}</p>
-                          <p className="text-xs text-muted-foreground">{person.email}</p>
-                          <p className="mt-1 text-xs tracking-wide text-primary uppercase">{role?.label ?? person.role}</p>
-                        </div>
-                        {person.role === "admin" ? (
-                          <p className="max-w-36 text-right text-xs text-muted-foreground">
-                            Company account required. No public sign-in.
-                          </p>
-                        ) : (
-                          <form action={signInSample}>
-                            <input type="hidden" name="userId" value={person.id} />
-                            <button
-                              type="submit"
-                              className="rounded-full bg-primary px-3 py-2 text-sm font-bold text-primary-foreground hover:bg-brand-bright"
-                            >
-                              Continue
-                            </button>
-                          </form>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ) : status.hasActiveAdmin ? (
+            {canPasswordSignIn ? (
               <div className="relative">
                 <h1 className="sr-only">Sign in</h1>
                 <LoginForm next={next} />
+                {status.sampleMode ? (
+                  <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+                    Company email domain is not set yet. Use a verified company account once an administrator configures it.
+                  </p>
+                ) : null}
               </div>
             ) : (
               <div className="relative">
