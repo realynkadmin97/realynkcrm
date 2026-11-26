@@ -40,9 +40,9 @@ export default function ReaLoginMockup() {
               className="relative z-[1] h-auto w-[min(100%,18rem)] drop-shadow-[0_24px_40px_rgba(0,0,0,0.35)]"
             />
             <div className="relative z-[1] mt-5 max-w-xs">
-              <p className="text-2xl font-bold">Hi, I&apos;m Rea</p>
+              <p className="text-2xl font-bold">I&apos;m Rea</p>
               <p className="mt-2 text-sm leading-relaxed text-white/80">
-                Realynk&apos;s command center. I keep the leads clean, the pipeline clear, and your team on the next step.
+                I am the command center manager of Realynk. Sign in and I&apos;ll meet you in the workspace.
               </p>
             </div>
           </section>
