@@ -30,20 +30,23 @@ export default function ReaLoginMockup() {
       <div className="relative z-10 flex min-h-[calc(100dvh-2.25rem)] items-center justify-center px-4 py-10">
         <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/20 bg-[#000851]/28 shadow-[0_30px_80px_rgba(0,8,81,0.45)] backdrop-blur-md lg:grid-cols-[1.05fr_0.95fr]">
           <section className="relative flex min-h-[22rem] flex-col items-center justify-center px-6 py-10 text-center sm:min-h-[28rem]">
-            <Image
-              src="/brand/rea-mascot.png"
-              alt="Rea, the Realynk assistant"
-              width={673}
-              height={738}
-              unoptimized
-              priority
-              className="relative z-[1] h-auto w-[min(100%,18rem)] drop-shadow-[0_24px_40px_rgba(0,0,0,0.35)]"
-            />
-            <div className="relative z-[1] mt-5 max-w-xs">
-              <p className="text-2xl font-bold">I&apos;m Rea</p>
-              <p className="mt-2 text-sm leading-relaxed text-white/80">
-                I am the command center manager of Realynk. Sign in and I&apos;ll meet you in the workspace.
-              </p>
+            {/* Bubble sits left of Rea in the art; nudge so her body and the copy share one center. */}
+            <div className="relative z-[1] flex w-full max-w-[20rem] flex-col items-center">
+              <Image
+                src="/brand/rea-mascot.png"
+                alt="Rea, the Realynk assistant"
+                width={673}
+                height={738}
+                unoptimized
+                priority
+                className="h-auto w-full -translate-x-3 drop-shadow-[0_24px_40px_rgba(0,0,0,0.35)] sm:-translate-x-4"
+              />
+              <div className="mt-5 max-w-[16.5rem] -translate-x-3 sm:-translate-x-4">
+                <p className="text-2xl font-bold">I&apos;m Rea, Realynk&apos;s command center manager.</p>
+                <p className="mt-2 text-sm leading-relaxed text-white/80">
+                  Ask your admin for an invite if you&apos;re new here.
+                </p>
+              </div>
             </div>
           </section>
 

@@ -58,7 +58,7 @@ Use the lockup in `logo-realynk-assistants.png` when the mark and the Realynk As
 
 Rea is the Realynk AI assistant. The mascot lives in `public/brand/rea-mascot.png`. The glass login sample is at `/landing/rea`. That page is a mockup and does not collect a password.
 
-Default door line: **I'm Rea.** Supporting sentence: *I am the command center manager of Realynk. Sign in and I'll meet you in the workspace.*
+Default door line: **I'm Rea, Realynk's command center manager.** Supporting sentence: *Ask your admin for an invite if you're new here.*
 
 ## Waves
 
