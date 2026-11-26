@@ -29,23 +29,34 @@ export default function ReaLoginMockup() {
 
       <div className="relative z-10 flex min-h-[calc(100dvh-2.25rem)] items-center justify-center px-4 py-10">
         <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/20 bg-[#000851]/28 shadow-[0_30px_80px_rgba(0,8,81,0.45)] backdrop-blur-md lg:grid-cols-[1.05fr_0.95fr]">
-          <section className="relative flex min-h-[22rem] flex-col items-center justify-center px-6 py-10 text-center sm:min-h-[28rem]">
-            {/* Bubble sits left of Rea in the art; nudge so her body and the copy share one center. */}
-            <div className="relative z-[1] flex w-full max-w-[20rem] flex-col items-center">
-              <Image
-                src="/brand/rea-mascot.png"
-                alt="Rea, the Realynk assistant"
-                width={673}
-                height={738}
-                unoptimized
-                priority
-                className="h-auto w-full -translate-x-3 drop-shadow-[0_24px_40px_rgba(0,0,0,0.35)] sm:-translate-x-4"
-              />
-              <div className="mt-5 max-w-[16.5rem] -translate-x-3 sm:-translate-x-4">
-                <p className="text-2xl font-bold">I&apos;m Rea, Realynk&apos;s command center manager.</p>
-                <p className="mt-2 text-sm leading-relaxed text-white/80">
-                  Ask your admin for an invite if you&apos;re new here.
-                </p>
+          <section className="relative flex min-h-[22rem] items-center justify-center px-4 py-10 sm:min-h-[28rem] sm:px-6">
+            <div className="relative z-[1] flex w-full max-w-[22rem] flex-col items-center">
+              <div className="relative w-full">
+                <div className="absolute top-2 left-0 z-[2] w-[min(100%,13.5rem)] -translate-y-1 sm:top-4 sm:left-[-0.25rem]">
+                  <div
+                    className="rounded-[1.35rem] px-4 py-3 text-left text-[#000851] shadow-[0_12px_30px_rgba(0,8,81,0.35)]"
+                    style={{ background: "linear-gradient(145deg, #7eb6ff 0%, #0257b5 55%, #0543b8 100%)" }}
+                  >
+                    <p className="text-sm font-bold leading-snug text-white">I&apos;m Rea, Realynk&apos;s command center manager.</p>
+                    <p className="mt-1.5 text-xs leading-relaxed text-white/90">
+                      Ask your admin for an invite if you&apos;re new here.
+                    </p>
+                  </div>
+                  <span
+                    className="ml-10 block h-0 w-0 border-x-[10px] border-t-[14px] border-x-transparent"
+                    style={{ borderTopColor: "#0543b8" }}
+                    aria-hidden
+                  />
+                </div>
+                <Image
+                  src="/brand/rea-mascot.png"
+                  alt="Rea, the Realynk assistant"
+                  width={543}
+                  height={773}
+                  unoptimized
+                  priority
+                  className="relative z-[1] mx-auto mt-16 h-auto w-[min(100%,15rem)] drop-shadow-[0_24px_40px_rgba(0,0,0,0.35)] sm:mt-14 sm:w-[min(100%,16.5rem)]"
+                />
               </div>
             </div>
           </section>
