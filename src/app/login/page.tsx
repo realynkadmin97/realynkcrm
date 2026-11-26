@@ -1,5 +1,6 @@
 import { LoginForm } from "@/app/login/login-form";
 import { BrandStage } from "@/components/brand-stage";
+import { LogoMark } from "@/components/logo-mark";
 import { ReaPanel } from "@/components/rea-panel";
 import { readSession, safeNext, workspaceStatus } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -30,9 +31,7 @@ export default async function LoginPage({
               style={{ background: "#7eb6ff" }}
             />
             <div className="relative mb-8 flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground shadow-[0_10px_24px_rgba(5,67,184,0.35)]">
-                R
-              </span>
+              <LogoMark className="h-11 w-11 shadow-[0_10px_24px_rgba(5,67,184,0.35)]" priority />
               <div>
                 <p className="text-xl font-bold tracking-wide text-foreground">Realynk</p>
                 <p className="text-xs text-muted-foreground">Sign in · Rea is ready when you are</p>

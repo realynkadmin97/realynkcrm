@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { logout } from "@/app/actions";
+import { LogoMark } from "@/components/logo-mark";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { can, type SessionUser } from "@/lib/auth";
@@ -44,9 +45,7 @@ export function Shell({
       <aside className="border-b border-sidebar-border bg-sidebar text-sidebar-foreground md:min-h-screen md:border-b-0 md:border-r">
         <div className="flex items-end justify-between gap-4 px-5 py-5 md:block">
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-              R
-            </span>
+            <LogoMark className="h-9 w-9" />
             <div>
               <p className="text-lg font-bold leading-none tracking-wide text-foreground">Realynk</p>
               <p className="mt-1 text-xs text-muted-foreground">Command center · Rea</p>

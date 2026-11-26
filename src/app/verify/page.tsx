@@ -1,5 +1,6 @@
 import { VerifyForm } from "@/app/verify/verify-form";
 import { BrandStage } from "@/components/brand-stage";
+import { LogoMark } from "@/components/logo-mark";
 import { ReaPanel } from "@/components/rea-panel";
 import { hashToken } from "@/lib/crypto";
 import { queryAuth } from "@/lib/db";
@@ -23,9 +24,7 @@ export default async function VerifyPage({ searchParams }: { searchParams: Promi
           <ReaPanel />
           <section className="relative z-[1] flex flex-col justify-center bg-white px-7 py-10 sm:px-10">
             <div className="mb-6 flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
-                R
-              </span>
+              <LogoMark className="h-11 w-11" priority />
               <div>
                 <p className="text-xl font-bold tracking-wide">Realynk</p>
                 <p className="text-xs text-muted-foreground">Verify · finish your invite</p>

@@ -14,6 +14,7 @@ The CRM uses this door as the global design:
 - **Accent:** `#0543b8` for primary actions; navy `#000851` for type.
 - **Rea:** Command center manager. Speaks from the speech bubble on `/login`.
 - **Tokens:** `src/app/globals.css` (`--primary`, `--navy`, `--brand`, sidebar, cards).
+- **Logo mark:** Circular blue mark in `public/brand/logo-mark.png` (site chrome and favicon). Full Assistants lockup remains `logo-realynk-assistants.png`.
 
 Do not reintroduce the old teal palette or Outfit/Newsreader for product screens.
 
