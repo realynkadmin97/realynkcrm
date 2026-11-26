@@ -89,14 +89,24 @@ async function applyPoolMigrations(pool: pg.Pool) {
 
 async function start() {
   const current = holder();
-  if (databaseUrl()) {
-    const url = databaseUrl();
+  const url = databaseUrl();
+  if (url) {
     current.pool = new pg.Pool({
       connectionString: url,
       max: 5,
-      ssl: url.includes("supabase") || url.includes("sslmode=require") ? { rejectUnauthorized: false } : undefined,
+      ssl: url.includes("supabase") || url.includes("sslmode=require") || url.includes("sslmode=verify-full")
+        ? { rejectUnauthorized: false }
+        : undefined,
     });
-    await applyPoolMigrations(current.pool);
+    try {
+      await applyPoolMigrations(current.pool);
+    } catch (error) {
+      current.configError = error instanceof Error ? `CRM:migrate:${error.message}` : "CRM:migrate";
+      return;
+    }
+  } else if (process.env.VERCEL || process.env.NODE_ENV === "production") {
+    current.configError = "CRM:missing_database_url";
+    return;
   } else {
     const db = new PGlite();
     current.pglite = db;
@@ -113,7 +123,8 @@ export async function ready() {
     current.ready = start().catch((error: unknown) => {
       current.ready = undefined;
       current.pglite = undefined;
-      throw error;
+      current.pool = undefined;
+      current.configError = error instanceof Error ? error.message : "CRM:database_unavailable";
     });
   }
   await current.ready;
@@ -125,6 +136,10 @@ export function configError() {
 
 export async function queryAuth<T extends SqlRow = SqlRow>(text: string, params: unknown[] = []) {
   await ready();
+  const current = holder();
+  if (current.configError && !current.pool && !current.pglite) {
+    throw new Error(current.configError);
+  }
   return execRaw<T>(text, params);
 }
 

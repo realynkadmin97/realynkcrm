@@ -40,14 +40,23 @@ function mapUser(row: SqlRow): SessionUser {
 }
 
 export async function workspaceStatus(): Promise<WorkspaceStatus> {
-  const rows = await queryAuth<SqlRow>("select sample_mode, email_domain, has_active_admin from private.workspace_status()");
-  const row = rows[0];
-  return {
-    sampleMode: Boolean(row?.sample_mode),
-    emailDomain: row?.email_domain == null ? null : String(row.email_domain),
-    hasActiveAdmin: Boolean(row?.has_active_admin),
-    configError: configError(),
-  };
+  try {
+    const rows = await queryAuth<SqlRow>("select sample_mode, email_domain, has_active_admin from private.workspace_status()");
+    const row = rows[0];
+    return {
+      sampleMode: Boolean(row?.sample_mode),
+      emailDomain: row?.email_domain == null ? null : String(row.email_domain),
+      hasActiveAdmin: Boolean(row?.has_active_admin),
+      configError: configError(),
+    };
+  } catch (error) {
+    return {
+      sampleMode: true,
+      emailDomain: null,
+      hasActiveAdmin: false,
+      configError: configError() ?? (error instanceof Error ? error.message : "CRM:database_unavailable"),
+    };
+  }
 }
 
 export async function sampleDirectory() {

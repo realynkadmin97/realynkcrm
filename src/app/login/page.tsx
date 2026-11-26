@@ -44,6 +44,18 @@ export default async function LoginPage({
               </p>
             ) : null}
 
+            {status.configError?.includes("CRM:missing_database_url") ? (
+              <p className="relative mb-4 rounded-xl bg-accent px-3 py-2 text-sm text-foreground">
+                DATABASE_URL is missing on this host. Add the Supabase Postgres URI in Vercel Environment Variables, then redeploy.
+              </p>
+            ) : null}
+
+            {status.configError?.startsWith("CRM:migrate:") ? (
+              <p className="relative mb-4 rounded-xl bg-accent px-3 py-2 text-sm text-foreground">
+                The database connected, but setup could not finish. Check DATABASE_URL and that the Supabase project is healthy.
+              </p>
+            ) : null}
+
             {canPasswordSignIn ? (
               <div className="relative">
                 <h1 className="sr-only">Sign in</h1>
