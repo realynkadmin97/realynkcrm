@@ -52,7 +52,10 @@ export default async function LoginPage({
 
             {status.configError?.startsWith("CRM:migrate:") ? (
               <p className="relative mb-4 rounded-xl bg-accent px-3 py-2 text-sm text-foreground">
-                The database connected, but setup could not finish. Check DATABASE_URL and that the Supabase project is healthy.
+                Database setup could not finish
+                {status.configError.slice("CRM:migrate:".length)
+                  ? `: ${status.configError.slice("CRM:migrate:".length)}`
+                  : ". Use the Supabase direct URI (port 5432), not the pooler."}
               </p>
             ) : null}
 

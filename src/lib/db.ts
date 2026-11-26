@@ -26,6 +26,16 @@ function databaseUrl() {
   return process.env.DATABASE_URL?.trim() ?? "";
 }
 
+function migrationDatabaseUrl() {
+  return process.env.DATABASE_URL_UNPOOLED?.trim() || databaseUrl();
+}
+
+function poolSsl(url: string) {
+  return url.includes("supabase") || url.includes("sslmode=require") || url.includes("sslmode=verify-full")
+    ? { rejectUnauthorized: false }
+    : undefined;
+}
+
 async function execRaw<T extends SqlRow>(text: string, params: unknown[] = []) {
   const current = holder();
   if (current.pool) {
@@ -61,10 +71,16 @@ async function migrationFiles() {
   return (await readdir(directory).catch(() => [])).filter((file) => file.endsWith(".sql")).sort();
 }
 
-async function applyPoolMigrations(pool: pg.Pool) {
+async function applyPoolMigrations() {
   const files = await migrationFiles();
   if (files.length === 0) return;
-  const client = await pool.connect();
+  const url = migrationDatabaseUrl();
+  if (!url) return;
+  const client = new pg.Client({
+    connectionString: url,
+    ssl: poolSsl(url),
+  });
+  await client.connect();
   try {
     await client.query("create table if not exists schema_migrations (name text primary key, applied_at timestamptz not null default now())");
     const done = new Set(
@@ -83,7 +99,7 @@ async function applyPoolMigrations(pool: pg.Pool) {
       }
     }
   } finally {
-    client.release();
+    await client.end();
   }
 }
 
@@ -94,14 +110,13 @@ async function start() {
     current.pool = new pg.Pool({
       connectionString: url,
       max: 5,
-      ssl: url.includes("supabase") || url.includes("sslmode=require") || url.includes("sslmode=verify-full")
-        ? { rejectUnauthorized: false }
-        : undefined,
+      ssl: poolSsl(url),
     });
     try {
-      await applyPoolMigrations(current.pool);
+      await applyPoolMigrations();
     } catch (error) {
-      current.configError = error instanceof Error ? `CRM:migrate:${error.message}` : "CRM:migrate";
+      const detail = error instanceof Error ? error.message.replace(/\s+/g, " ").slice(0, 180) : "unknown";
+      current.configError = `CRM:migrate:${detail}`;
       return;
     }
   } else if (process.env.VERCEL || process.env.NODE_ENV === "production") {
