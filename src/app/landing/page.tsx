@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const samples = [
+  { href: "/landing/rea", name: "Rea", line: "Glass card, Rea on the left, company email on the right. Closest to the reference." },
   { href: "/landing/threshold", name: "Threshold", line: "Full-bleed navy, one sentence, one way in." },
   { href: "/landing/partnership", name: "Partnership", line: "White page, the three values, sign-in in the corner." },
   { href: "/landing/desk", name: "Desk", line: "The workspace itself: brand on the left, a sheet on the right." },

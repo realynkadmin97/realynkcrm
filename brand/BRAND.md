@@ -53,3 +53,7 @@ Lato. Clean, neutral, and flexible. Use it when a surface is meant to carry the 
 ## Logo
 
 Use the lockup in `logo-realynk-assistants.png` when the mark and the Realynk Assistants name should appear together. Keep the wordmark intact. Do not recolor the letters outside the blues above.
+
+## Rea
+
+Rea is the Realynk AI assistant. The mascot lives in `public/brand/rea-mascot.png`. The glass login sample is at `/landing/rea`. That page is a mockup and does not collect a password.
