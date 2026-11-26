@@ -29,7 +29,7 @@ export default function ReaLoginMockup() {
 
       <div className="relative z-10 flex min-h-[calc(100dvh-2.25rem)] items-center justify-center px-4 py-10">
         <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/20 bg-[#000851]/28 shadow-[0_30px_80px_rgba(0,8,81,0.45)] backdrop-blur-md lg:grid-cols-[1.05fr_0.95fr]">
-          <section className="relative flex min-h-[22rem] flex-col items-center justify-center px-6 py-10 sm:min-h-[28rem]">
+          <section className="relative flex min-h-[22rem] flex-col items-center justify-center px-6 py-10 text-center sm:min-h-[28rem]">
             <Image
               src="/brand/rea-mascot.png"
               alt="Rea, the Realynk assistant"
@@ -37,9 +37,14 @@ export default function ReaLoginMockup() {
               height={738}
               unoptimized
               priority
-              className="relative z-[1] h-auto w-[min(100%,20rem)] drop-shadow-[0_24px_40px_rgba(0,0,0,0.35)]"
+              className="relative z-[1] h-auto w-[min(100%,18rem)] drop-shadow-[0_24px_40px_rgba(0,0,0,0.35)]"
             />
-            <p className="relative z-[1] mt-4 text-sm tracking-[0.18em] text-white/70 uppercase">Rea</p>
+            <div className="relative z-[1] mt-5 max-w-xs">
+              <p className="text-2xl font-bold">Hi, I&apos;m Rea</p>
+              <p className="mt-2 text-sm leading-relaxed text-white/80">
+                Realynk&apos;s command center. I keep the leads clean, the pipeline clear, and your team on the next step.
+              </p>
+            </div>
           </section>
 
           <section className="relative z-[1] flex flex-col justify-center px-7 py-10 sm:px-10">
@@ -47,7 +52,7 @@ export default function ReaLoginMockup() {
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0543b8] text-lg font-bold">R</span>
               <div>
                 <p className="text-xl font-bold tracking-wide">Realynk</p>
-                <p className="text-xs text-white/70">Meet Rea · company workspace</p>
+                <p className="text-xs text-white/70">Sign in · Rea is ready when you are</p>
               </div>
             </div>
 

@@ -58,6 +58,8 @@ Use the lockup in `logo-realynk-assistants.png` when the mark and the Realynk As
 
 Rea is the Realynk AI assistant. The mascot lives in `public/brand/rea-mascot.png`. The glass login sample is at `/landing/rea`. That page is a mockup and does not collect a password.
 
+Default door line: **Hi, I'm Rea — Realynk's command center.** Supporting sentence on the sample: *I keep the leads clean, the pipeline clear, and your team on the next step.*
+
 ## Waves
 
 Soft intersecting ribbons use `#0543b8`, `#0257b5`, and `#022f7f` on the deepest navy. The sample is on `/landing/rea`. The FlowPro-style reference is `brand/wave-reference-flowpro.png`.
