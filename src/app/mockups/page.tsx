@@ -4,17 +4,17 @@ const options = [
   {
     href: "/mockups/atlas",
     name: "Atlas",
-    line: "Quiet command desk. Slim left text nav, list-first Today, no pill buttons.",
+    line: "Quiet command desk. Slim left nav, list-first Today, soft rounded panels.",
   },
   {
     href: "/mockups/harbor",
     name: "Harbor",
-    line: "Airy top bar like the Rea door canvas. Soft queues and rectangular actions.",
+    line: "Airy top bar like the Rea door canvas. Softest round corners and pill actions.",
   },
   {
     href: "/mockups/ledger",
     name: "Ledger",
-    line: "Ops floor. Toolbar + sheet table as the main surface. Compact controls.",
+    line: "Ops floor. Toolbar + sheet table, with rounded chips and a soft table frame.",
   },
 ];
 
@@ -32,7 +32,7 @@ export default function MockupsIndex() {
             <li key={option.href}>
               <Link
                 href={option.href}
-                className="block border border-[#0543b8]/25 bg-white px-5 py-4 transition hover:border-[#0543b8]"
+                className="block rounded-2xl border border-[#0543b8]/25 bg-white px-5 py-4 transition hover:border-[#0543b8]"
               >
                 <p className="font-bold">{option.name}</p>
                 <p className="mt-1 text-sm text-[#022f7f]">{option.line}</p>

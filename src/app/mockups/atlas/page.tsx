@@ -27,10 +27,10 @@ export default function AtlasMockup() {
               <a
                 key={item}
                 href="#desk"
-                className={`block whitespace-nowrap px-2 py-2 text-sm ${
+                    className={`block whitespace-nowrap rounded-xl px-3 py-2 text-sm ${
                   index === 0
-                    ? "border-l-2 border-[#0543b8] font-bold text-[#0543b8] md:pl-3"
-                    : "text-[#000851]/70 hover:text-[#0543b8] md:border-l-2 md:border-transparent md:pl-3"
+                    ? "bg-[#0543b8]/10 font-bold text-[#0543b8]"
+                    : "text-[#000851]/70 hover:bg-[#0543b8]/06 hover:text-[#0543b8]"
                 }`}
               >
                 {item}
@@ -55,11 +55,14 @@ export default function AtlasMockup() {
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"
-                className="border border-[#0543b8]/30 bg-white px-4 py-2 text-sm font-bold text-[#0543b8] hover:border-[#0543b8]"
+                className="rounded-2xl border border-[#0543b8]/30 bg-white px-4 py-2 text-sm font-bold text-[#0543b8] hover:border-[#0543b8]"
               >
                 Import leads
               </button>
-              <button type="button" className="bg-[#0543b8] px-4 py-2 text-sm font-bold text-white hover:bg-[#0257b5]">
+              <button
+                type="button"
+                className="rounded-2xl bg-[#0543b8] px-4 py-2 text-sm font-bold text-white hover:bg-[#0257b5]"
+              >
                 Add lead
               </button>
             </div>
@@ -71,14 +74,19 @@ export default function AtlasMockup() {
                 <h2 className="text-sm font-bold tracking-[0.14em] text-[#0543b8] uppercase">Needs attention</h2>
                 <span className="text-xs text-[#000851]/50">{STALE.length} open</span>
               </div>
-              <ul className="mt-3 divide-y divide-[#0543b8]/12 border-y border-[#0543b8]/12">
+              <ul className="mt-3 space-y-2">
                 {STALE.map((row) => (
-                  <li key={row.company} className="flex items-center justify-between gap-3 py-3">
+                  <li
+                    key={row.company}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-[#0543b8]/12 bg-white px-4 py-3"
+                  >
                     <div>
                       <p className="font-bold">{row.company}</p>
                       <p className="text-xs text-[#000851]/55">{row.person}</p>
                     </div>
-                    <span className="text-xs font-bold tracking-wide text-[#0543b8]">{row.stage}</span>
+                    <span className="rounded-full bg-[#0543b8]/10 px-2.5 py-1 text-xs font-bold tracking-wide text-[#0543b8]">
+                      {row.stage}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -91,7 +99,10 @@ export default function AtlasMockup() {
               </div>
               <ul className="mt-3 space-y-2">
                 {LEADS.slice(0, 4).map((lead) => (
-                  <li key={lead.company} className="flex items-center justify-between gap-3 bg-white px-3 py-2.5">
+                  <li
+                    key={lead.company}
+                    className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2.5 shadow-[0_8px_24px_rgba(0,8,81,0.04)]"
+                  >
                     <div>
                       <p className="text-sm font-bold">{lead.company}</p>
                       <p className="text-xs text-[#000851]/55">
@@ -108,14 +119,17 @@ export default function AtlasMockup() {
               <h2 className="text-sm font-bold tracking-[0.14em] text-[#0543b8] uppercase">Open tasks</h2>
               <ul className="mt-3 space-y-3">
                 {TASKS.map((task) => (
-                  <li key={task.summary} className="border-l-2 border-[#7eb6ff] bg-white py-3 pl-4">
+                  <li
+                    key={task.summary}
+                    className="rounded-2xl border border-[#0543b8]/10 border-l-4 border-l-[#7eb6ff] bg-white py-3 pl-4 shadow-[0_8px_24px_rgba(0,8,81,0.04)]"
+                  >
                     <p className="text-sm font-bold">{task.summary}</p>
                     <p className="mt-1 text-xs text-[#000851]/55">{task.when}</p>
                   </li>
                 ))}
               </ul>
               <p className="mt-6 text-xs leading-relaxed text-[#000851]/50">
-                Atlas uses square actions and underline links — no rounded pills. Nav is a quiet left margin, not a heavy rail.
+                Atlas keeps a quiet left nav, with soft rounded panels and gentle stage chips.
               </p>
             </div>
           </section>
