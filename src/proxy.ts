@@ -2,7 +2,12 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith("/login") || pathname.startsWith("/verify") || pathname.startsWith("/session/end")) {
+  if (
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/landing") ||
+    pathname.startsWith("/verify") ||
+    pathname.startsWith("/session/end")
+  ) {
     return NextResponse.next();
   }
   if (!request.cookies.get("crm_session")?.value) {

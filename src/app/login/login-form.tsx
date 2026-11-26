@@ -20,7 +20,7 @@ export function LoginForm({ next }: { next: string }) {
         <Input id="password" name="password" type="password" autoComplete="current-password" required />
       </div>
       {state?.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
-      <Button type="submit" disabled={pending} className="w-full">
+      <Button type="submit" disabled={pending} className="w-full bg-[#0543b8] text-white hover:bg-[#0257b5]">
         {pending ? "Signing in…" : "Sign in"}
       </Button>
     </form>
