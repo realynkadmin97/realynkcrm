@@ -1,6 +1,11 @@
+import { hostIsAllowed } from "@/lib/env";
 import { NextResponse, type NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
+  if (!hostIsAllowed(request.headers.get("host"))) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
   const { pathname } = request.nextUrl;
   if (
     pathname.startsWith("/login") ||

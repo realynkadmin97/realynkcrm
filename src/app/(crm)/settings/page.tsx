@@ -30,7 +30,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
                 : "No company email domain is configured. Sample accounts are the only way in."}
             </p>
             <p className="text-muted-foreground">
-              Set REALYNK_EMAIL_DOMAIN on the server. The app will not guess it, and a visitor cannot change it from the CRM.
+              Set REALYNK_EMAIL_DOMAIN on the server. Optionally set REALYNK_ALLOWED_HOSTS to the CRM subdomain so other hosts get 404. The app will not guess either value, and a visitor cannot change them from the CRM.
             </p>
           </CardContent>
         </Card>

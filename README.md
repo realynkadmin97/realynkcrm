@@ -10,12 +10,23 @@ Until `REALYNK_EMAIL_DOMAIN` is set, the CRM opens a labeled sample workspace. T
 
 Copy `.env.example` to `.env.local` when you are ready to enforce the domain:
 
-- `REALYNK_EMAIL_DOMAIN` — the part after `@` in a company address
+- `REALYNK_EMAIL_DOMAIN` — the part after `@` in a company address (not the CRM website host)
 - `REALYNK_BOOTSTRAP_ADMIN_EMAIL` — first admin, on that domain
 - `REALYNK_BOOTSTRAP_ADMIN_NAME`
 - `REALYNK_BOOTSTRAP_ADMIN_PASSWORD` — at least 10 characters
+- `REALYNK_ALLOWED_HOSTS` — optional CRM website hosts only, e.g. `crm.realynk.com,127.0.0.1,localhost`
 
 The bootstrap admin is created already verified, because you set the password yourself. Every later person is invited by an admin, gets a one-time verification link, and chooses a password before they can sign in. The link is shown to the admin to send on; this app does not include an email provider.
+
+### Keep the CRM off the open web
+
+Sign-in is already invite-only. To keep the site itself off public browse lists:
+
+1. Publish the app as **private** (or team), not public.
+2. Point a company subdomain at it, such as `crm.realynk.com`.
+3. Set `REALYNK_ALLOWED_HOSTS=crm.realynk.com` (plus `127.0.0.1,localhost` when developing). Other hosts, including a random preview URL, get 404.
+
+Anyone who knows the subdomain can still open the sign-in page. They cannot enter the CRM without an approved company account. For a harder gate in front of even the login page, put Cloudflare Access or a VPN on that subdomain.
 
 ## Lead cleaner
 

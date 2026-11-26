@@ -11,3 +11,22 @@ export function bootstrapAdmin() {
   if (!email || !name || !password) return null;
   return { email, name, password };
 }
+
+/** Hostnames that may serve the CRM. Empty means any host (local default). */
+export function allowedHosts(): string[] | null {
+  const raw = process.env.REALYNK_ALLOWED_HOSTS?.trim().toLowerCase() ?? "";
+  if (!raw) return null;
+  const hosts = raw
+    .split(",")
+    .map((part) => part.trim().replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/:\d+$/, ""))
+    .filter(Boolean);
+  return hosts.length ? hosts : null;
+}
+
+export function hostIsAllowed(hostHeader: string | null): boolean {
+  const allowed = allowedHosts();
+  if (!allowed) return true;
+  const host = (hostHeader ?? "").split(":")[0]?.trim().toLowerCase() ?? "";
+  if (!host) return false;
+  return allowed.includes(host);
+}
