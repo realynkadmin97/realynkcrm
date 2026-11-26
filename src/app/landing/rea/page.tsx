@@ -28,7 +28,7 @@ export default function ReaLoginMockup() {
       </p>
 
       <div className="relative z-10 flex min-h-[calc(100dvh-2.25rem)] items-center justify-center px-4 py-10">
-        <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/15 bg-[#000851]/40 shadow-[0_30px_80px_rgba(0,8,81,0.45)] backdrop-blur-xl lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/20 bg-[#000851]/28 shadow-[0_30px_80px_rgba(0,8,81,0.45)] backdrop-blur-md lg:grid-cols-[1.05fr_0.95fr]">
           <section className="relative flex min-h-[22rem] items-end justify-center px-6 pb-6 pt-10 sm:min-h-[28rem]">
             <Image
               src="/brand/rea-mascot.png"
