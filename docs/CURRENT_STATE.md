@@ -19,7 +19,7 @@ Updated 26 November 2026, 22:30 Asia/Shanghai.
 
 - A column run still lives in the browser. Closing the computer stops it. Supabase is connected and not yet used as the worker.
 - Industry, email verification, ICP, and custom prompt runs do not call out. No server key is configured.
-- Cursor private app is live at `https://realynk-crm.apps.grok.bot`. Company subdomain `crm.realynk.com` on Vercel is the next host step (see README).
+- Company CRM is live at `https://crm.realynk.com` (Vercel, Realynk Assistants). Login: `/login`. Cursor private app remains a backup.
 - On a narrow phone, the Leads stage badge can clip inside the table.
 - The Rea door is locked as the global CRM design: Lato, light canvas, Realynk navy/blue tokens in `globals.css`, quiet corner waves, Rea on `/login` and `/verify`, light sidebar chrome.
 
