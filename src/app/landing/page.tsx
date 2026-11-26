@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const samples = [
+  { href: "/mockups", name: "Dashboard mockups (new)", line: "Three desk directions: Atlas, Harbor, Ledger." },
   { href: "/login", name: "Rea door (live)", line: "Locked as the global Realynk CRM design. Secure sign-in with Rea." },
   { href: "/landing/threshold", name: "Threshold", line: "Earlier sample. Full-bleed navy." },
   { href: "/landing/partnership", name: "Partnership", line: "Earlier sample. White values page." },

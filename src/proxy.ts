@@ -10,6 +10,7 @@ export function proxy(request: NextRequest) {
   if (
     pathname.startsWith("/login") ||
     pathname.startsWith("/landing") ||
+    pathname.startsWith("/mockups") ||
     pathname.startsWith("/verify") ||
     pathname.startsWith("/session/end")
   ) {
