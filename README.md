@@ -59,3 +59,28 @@ Open http://127.0.0.1:4317. Unauthenticated visits go to the login page. The sid
 ## Design
 
 The Rea door is the locked global design: Lato, light canvas, Realynk navy/blue accents, quiet corner waves. Sign-in is http://127.0.0.1:4317/login. Earlier landing samples stay under `/landing` for reference.
+
+## Deploy on Vercel (`crm.realynk.com`)
+
+Cursor Live Apps stay on their own private URL. The company subdomain is a separate Vercel project.
+
+1. In [Vercel](https://vercel.com), **Add New Project** and import this repo (or deploy with `npx vercel` after `vercel login`).
+2. Framework: Next.js. Root directory: `.`
+3. Environment variables (Production):
+
+| Name | Value |
+| --- | --- |
+| `DATABASE_URL` | Supabase Postgres URI for project **Realynk CRM** (Settings → Database → URI). Prefer the pooled URI for runtime. |
+| `DATABASE_URL_UNPOOLED` | Direct Supabase URI (optional; used by migrate on build). |
+| `REALYNK_EMAIL_DOMAIN` | `realynk.com` |
+| `REALYNK_BOOTSTRAP_ADMIN_EMAIL` | your company admin address |
+| `REALYNK_BOOTSTRAP_ADMIN_NAME` | admin display name |
+| `REALYNK_BOOTSTRAP_ADMIN_PASSWORD` | admin password (10+ characters) |
+| `REALYNK_ALLOWED_HOSTS` | `crm.realynk.com` (add `127.0.0.1,localhost` only if you need local overrides against that build) |
+
+4. Deploy. Build runs `next build` then `scripts/migrate.mjs` against `DATABASE_URL`.
+5. In Vercel → Project → **Domains**, add `crm.realynk.com`.
+6. In your DNS for `realynk.com`, create the record Vercel shows (usually a CNAME `crm` → `cname.vercel-dns.com`).
+7. Wait for HTTPS. Open `https://crm.realynk.com/login` and sign in with the bootstrap admin.
+
+Do not commit database passwords. Keep the Cursor private app as a backup until the subdomain is healthy.
