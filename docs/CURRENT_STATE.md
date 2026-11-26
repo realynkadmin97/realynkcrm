@@ -30,3 +30,4 @@ Updated 26 November 2026, 22:30 Asia/Shanghai.
 - Deleted columns stay deleted. Do not re-add enrichment columns on load.
 - The sample admin stays locked. Do not add a passwordless public admin.
 - Do not hardcode a company email domain.
+
