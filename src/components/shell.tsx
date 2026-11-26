@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import { logout } from "@/app/actions";
 import { LogoMark } from "@/components/logo-mark";
 import { DepartmentRail, ModuleNav } from "@/components/shell-nav";
@@ -37,7 +36,7 @@ const DEPARTMENTS = [
   { id: "hr", label: "HR", href: "/command/hr", ready: true },
 ] as const;
 
-export async function Shell({
+export function Shell({
   user,
   permissions,
   children,
@@ -46,14 +45,9 @@ export async function Shell({
   permissions: string[];
   children: React.ReactNode;
 }) {
-  const path = (await headers()).get("x-realynk-pathname") ?? "/";
-  const gtmActive = !path.startsWith("/command/");
   const role = ROLE_COPY[user.role];
   const modules = LINKS.filter((link) => link.allow(permissions));
-  const departments = DEPARTMENTS.map((dept) => ({
-    ...dept,
-    active: dept.id === "gtm" ? gtmActive : path.startsWith(dept.href),
-  }));
+  const departments = DEPARTMENTS.map((dept) => ({ ...dept }));
 
   return (
     <div
@@ -85,7 +79,7 @@ export async function Shell({
           </div>
 
           <p className="px-5 pb-2 text-[10px] font-bold tracking-[0.16em] text-primary/70 uppercase">Departments</p>
-          <DepartmentRail departments={[...departments]} />
+          <DepartmentRail departments={departments} />
 
           <div className="mt-6 border-t border-primary/10 px-5 py-4">
             <p className="font-bold">{user.fullName}</p>
@@ -108,12 +102,10 @@ export async function Shell({
           <header className="border-b border-white/60 bg-white/55 px-4 py-3 backdrop-blur-md md:px-8">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-bold tracking-[0.16em] text-primary uppercase">
-                  {gtmActive ? "Go-to-Market" : "Command"}
-                </p>
+                <p className="text-xs font-bold tracking-[0.16em] text-primary uppercase">Go-to-Market</p>
                 <p className="text-sm text-muted-foreground">Harbor desk · Rea&apos;s canvas</p>
               </div>
-              {gtmActive ? <ModuleNav links={modules} /> : null}
+              <ModuleNav links={modules} />
             </div>
           </header>
 

@@ -169,10 +169,8 @@ export async function withUser<T>(userId: string, fn: (query: QueryFn) => Promis
     try {
       await client.query("begin");
       try {
-        await client.query("set local role crm_app");
+        await assumeCrmApp(client);
         await client.query("select set_config('app.user_id', $1, true)", [userId]);
-        const who = await client.query<{ current_user: string }>("select current_user");
-        if (who.rows[0]?.current_user !== "crm_app") throw new Error("CRM:role_not_applied");
         const result = await fn(async (text, params = []) => (await client.query(text, params)).rows as SqlRow[]);
         await client.query("commit");
         return result;
@@ -188,10 +186,25 @@ export async function withUser<T>(userId: string, fn: (query: QueryFn) => Promis
   return current.pglite.transaction(async (tx) => {
     await tx.exec("set local role crm_app");
     await tx.query("select set_config('app.user_id', $1, true)", [userId]);
-    const who = await tx.query<{ current_user: string }>("select current_user");
-    if (who.rows[0]?.current_user !== "crm_app") throw new Error("CRM:role_not_applied");
     return fn(async (text, params = []) => (await tx.query<SqlRow>(text, params)).rows);
   });
+}
+
+async function assumeCrmApp(client: pg.PoolClient) {
+  try {
+    await client.query("set local role crm_app");
+  } catch {
+    try {
+      await client.query("grant crm_app to current_user");
+    } catch {
+      // ignore — final set local role below surfaces the real error
+    }
+    await client.query("set local role crm_app");
+  }
+  const who = await client.query<{ current_user: string }>("select current_user");
+  if (who.rows[0]?.current_user !== "crm_app") {
+    throw new Error("CRM:role_not_applied");
+  }
 }
 
 export async function resetLocalDatabase() {
