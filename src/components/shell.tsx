@@ -43,9 +43,14 @@ export function Shell({
     <div className="min-h-screen bg-background md:grid md:grid-cols-[250px_1fr]">
       <aside className="border-b border-sidebar-border bg-sidebar text-sidebar-foreground md:min-h-screen md:border-b-0 md:border-r">
         <div className="flex items-end justify-between gap-4 px-5 py-5 md:block">
-          <div>
-            <p className="font-heading text-2xl leading-none text-sidebar-primary">Realynk</p>
-            <p className="mt-1 text-xs tracking-[0.16em] text-sidebar-foreground/70 uppercase">CRM</p>
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+              R
+            </span>
+            <div>
+              <p className="text-lg font-bold leading-none tracking-wide text-foreground">Realynk</p>
+              <p className="mt-1 text-xs text-muted-foreground">Command center · Rea</p>
+            </div>
           </div>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:block md:space-y-1 md:px-3">
@@ -53,20 +58,25 @@ export function Shell({
             <Link
               key={link.href}
               href={link.href}
-              className="block rounded-lg px-3 py-2 text-sm whitespace-nowrap text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              className="block rounded-xl px-3 py-2 text-sm whitespace-nowrap text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             >
               {link.label}
             </Link>
           ))}
         </nav>
         <div className="border-t border-sidebar-border px-5 py-4">
-          <p className="font-medium">{user.fullName}</p>
-          <p className="mt-0.5 text-xs break-all text-sidebar-foreground/75">{user.email}</p>
-          <Badge variant="outline" className="mt-2 border-sidebar-border text-sidebar-foreground">
+          <p className="font-bold">{user.fullName}</p>
+          <p className="mt-0.5 text-xs break-all text-muted-foreground">{user.email}</p>
+          <Badge variant="outline" className="mt-2 border-primary/25 text-primary">
             {role.label}
           </Badge>
           <form action={logout} className="mt-3">
-            <Button type="submit" variant="outline" size="sm" className="border-sidebar-border bg-transparent text-sidebar-foreground hover:bg-sidebar-accent">
+            <Button
+              type="submit"
+              variant="outline"
+              size="sm"
+              className="rounded-full border-primary/25 bg-transparent text-foreground hover:bg-sidebar-accent"
+            >
               Log out
             </Button>
           </form>
@@ -87,7 +97,7 @@ export function Shell({
 export function PageTitle({ title, detail }: { title: string; detail: string }) {
   return (
     <header className="mb-6">
-      <h1 className="font-heading text-3xl tracking-tight">{title}</h1>
+      <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
       <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{detail}</p>
     </header>
   );
@@ -111,7 +121,7 @@ export function Flash({ notice, error }: { notice?: string; error?: string }) {
   if (!text) return null;
   const bad = Boolean(error);
   return (
-    <p className={`mb-4 rounded-lg px-3 py-2 text-sm ${bad ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}>
+    <p className={`mb-4 rounded-xl px-3 py-2 text-sm ${bad ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}>
       {text}
     </p>
   );

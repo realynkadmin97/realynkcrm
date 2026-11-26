@@ -45,12 +45,6 @@ npm run dev
 
 Open http://127.0.0.1:4317. Unauthenticated visits go to the login page. The sidebar shows the signed-in name and email, and Log out ends the session.
 
-Landing samples (no password):
+## Design
 
-- http://127.0.0.1:4317/landing
-- http://127.0.0.1:4317/landing/rea — glass card with Rea
-- http://127.0.0.1:4317/landing/threshold
-- http://127.0.0.1:4317/landing/partnership
-- http://127.0.0.1:4317/landing/desk
-
-The real sign-in is http://127.0.0.1:4317/login.
+The Rea door is the locked global design: Lato, light canvas, Realynk navy/blue accents, quiet corner waves. Sign-in is http://127.0.0.1:4317/login. Earlier landing samples stay under `/landing` for reference.

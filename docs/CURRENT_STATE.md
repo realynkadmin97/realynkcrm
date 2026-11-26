@@ -21,7 +21,7 @@ Updated 26 November 2026, 22:30 Asia/Shanghai.
 - Industry, email verification, ICP, and custom prompt runs do not call out. No server key is configured.
 - Publish is on hold. The company email domain is not set, so sample mode remains.
 - On a narrow phone, the Leads stage badge can clip inside the table.
-- The product screens inside the workspace still use the app type and teal palette. The sign-in page and the three landing samples use the brand navy and Lato.
+- The Rea door is locked as the global CRM design: Lato, light canvas, Realynk navy/blue tokens in `globals.css`, quiet corner waves, Rea on `/login` and `/verify`, light sidebar chrome.
 
 ## Do not regress
 

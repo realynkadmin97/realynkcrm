@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const samples = [
-  { href: "/landing/rea", name: "Rea", line: "Glass card, Rea on the left, company email on the right. Closest to the reference." },
-  { href: "/landing/threshold", name: "Threshold", line: "Full-bleed navy, one sentence, one way in." },
-  { href: "/landing/partnership", name: "Partnership", line: "White page, the three values, sign-in in the corner." },
-  { href: "/landing/desk", name: "Desk", line: "The workspace itself: brand on the left, a sheet on the right." },
+  { href: "/login", name: "Rea door (live)", line: "Locked as the global Realynk CRM design. Secure sign-in with Rea." },
+  { href: "/landing/threshold", name: "Threshold", line: "Earlier sample. Full-bleed navy." },
+  { href: "/landing/partnership", name: "Partnership", line: "Earlier sample. White values page." },
+  { href: "/landing/desk", name: "Desk", line: "Earlier sample. Sheet preview." },
 ];
 
 export default function LandingIndex() {

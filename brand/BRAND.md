@@ -5,7 +5,17 @@ Source files in this folder:
 - `realynk-identity-manual.pdf` — Branding Guidelines, Identity Manual (December 2024).
 - `logo-realynk-assistants.png` — wordmark lockup on black: the blue mark, REALYNK, and ASSISTANTS.
 
-The CRM screens still use their own type and teal palette. Use this file when a surface should follow the company identity.
+## Product UI (locked)
+
+The CRM uses this door as the global design:
+
+- **Type:** Lato everywhere (`src/app/layout.tsx`, `--font-sans`).
+- **Canvas:** Light Fantom-inspired stage — soft wash, quiet mesh, small corner waves (`BrandStage`, `RealynkWaves`).
+- **Accent:** `#0543b8` for primary actions; navy `#000851` for type.
+- **Rea:** Command center manager. Speaks from the speech bubble on `/login`.
+- **Tokens:** `src/app/globals.css` (`--primary`, `--navy`, `--brand`, sidebar, cards).
+
+Do not reintroduce the old teal palette or Outfit/Newsreader for product screens.
 
 ## About
 
