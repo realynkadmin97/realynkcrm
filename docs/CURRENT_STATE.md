@@ -1,6 +1,6 @@
 # Current state
 
-Updated 25 November 2026, 23:10 Asia/Shanghai.
+Updated 26 November 2026, 22:30 Asia/Shanghai.
 
 ## Working
 
@@ -13,6 +13,7 @@ Updated 25 November 2026, 23:10 Asia/Shanghai.
 - Three-dot column menu: run, prompt, insert, filter, rename, freeze, remove.
 - Add to pipeline for Manager and Admin.
 - Supabase project Realynk CRM is signed in and healthy.
+- Brand bible in `brand/`: identity manual, Realynk Assistants logo, and the written rules in `brand/BRAND.md`.
 
 ## Open
 
@@ -20,6 +21,7 @@ Updated 25 November 2026, 23:10 Asia/Shanghai.
 - Industry, email verification, ICP, and custom prompt runs do not call out. No server key is configured.
 - Publish is on hold. The company email domain is not set, so sample mode remains.
 - On a narrow phone, the Leads stage badge can clip inside the table.
+- The product screens still use the app type and teal palette. The brand bible is recorded and not applied to the interface yet.
 
 ## Do not regress
 

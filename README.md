@@ -33,7 +33,7 @@ Industry lookup, email verification, and ICP scoring are not connected. The clea
 
 Authorization is enforced in Postgres with row level security. Pages and server actions check the signed-in role as well. A sales rep cannot read another rep's leads by calling the database as themselves.
 
-The CRM uses its own Postgres database for sign-in and the sheet (in-memory during local development, and the published app's database when one is attached). Session checks do not trust the browser alone. A Supabase project named Realynk CRM is signed in for a later worker that can finish a column run after the computer is off. That worker is not connected yet. The session record lives in `docs/`.
+The CRM uses its own Postgres database for sign-in and the sheet (in-memory during local development, and the published app's database when one is attached). Session checks do not trust the browser alone. A Supabase project named Realynk CRM is signed in for a later worker that can finish a column run after the computer is off. That worker is not connected yet. The session record lives in `docs/`. The company identity lives in `brand/`: the identity manual, the Realynk Assistants logo, and `brand/BRAND.md`.
 
 ## Run locally
 
