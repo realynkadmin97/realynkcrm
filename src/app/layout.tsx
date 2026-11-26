@@ -9,8 +9,8 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "Realynk CRM",
-  description: "Company CRM for Realynk leads, opportunities, and sales activity.",
+  title: "Rea's Command Center",
+  description: "Realynk company workspace — leads, pipeline, and the cleaner, with Rea at the door.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
