@@ -1,3 +1,4 @@
+import { RealynkWaves } from "@/components/realynk-waves";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -9,20 +10,12 @@ export default function ReaLoginMockup() {
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(ellipse 80% 60% at 20% 20%, #0257b5 0%, transparent 55%), radial-gradient(ellipse 70% 50% at 90% 80%, #0543b8 0%, transparent 50%), linear-gradient(160deg, #000851 0%, #09127e 45%, #022f7f 100%)",
+          background: "linear-gradient(165deg, #000851 0%, #09127e 48%, #022f7f 100%)",
         }}
       />
-      <div
-        className="pointer-events-none absolute -top-24 left-[-10%] h-[28rem] w-[36rem] rounded-[100%] opacity-40 blur-3xl"
-        style={{ background: "#0543b8" }}
-      />
-      <div
-        className="pointer-events-none absolute bottom-[-8%] right-[-6%] h-[26rem] w-[32rem] rounded-[100%] opacity-35 blur-3xl"
-        style={{ background: "#0257b5" }}
-      />
+      <RealynkWaves />
 
-      <p className="relative z-10 flex flex-wrap items-center justify-between gap-2 bg-[#000851]/70 px-4 py-2 text-xs text-white/90 backdrop-blur">
+      <p className="relative z-10 flex flex-wrap items-center justify-between gap-2 bg-[#000851]/55 px-4 py-2 text-xs text-white/90 backdrop-blur">
         <span>Landing sample · Rea. This page does not sign anyone in.</span>
         <span className="flex gap-3">
           <Link href="/landing" className="underline">
@@ -35,7 +28,7 @@ export default function ReaLoginMockup() {
       </p>
 
       <div className="relative z-10 flex min-h-[calc(100dvh-2.25rem)] items-center justify-center px-4 py-10">
-        <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/15 bg-[#000851]/45 shadow-[0_30px_80px_rgba(0,8,81,0.45)] backdrop-blur-xl lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/15 bg-[#000851]/40 shadow-[0_30px_80px_rgba(0,8,81,0.45)] backdrop-blur-xl lg:grid-cols-[1.05fr_0.95fr]">
           <section className="relative flex min-h-[22rem] items-end justify-center px-6 pb-6 pt-10 sm:min-h-[28rem]">
             <Image
               src="/brand/rea-mascot.png"
@@ -44,12 +37,12 @@ export default function ReaLoginMockup() {
               height={738}
               unoptimized
               priority
-              className="h-auto w-[min(100%,22rem)] drop-shadow-[0_24px_40px_rgba(0,0,0,0.35)]"
+              className="relative z-[1] h-auto w-[min(100%,22rem)] drop-shadow-[0_24px_40px_rgba(0,0,0,0.35)]"
             />
-            <p className="absolute bottom-5 left-6 text-sm tracking-[0.18em] text-white/70 uppercase">Rea</p>
+            <p className="absolute bottom-5 left-6 z-[1] text-sm tracking-[0.18em] text-white/70 uppercase">Rea</p>
           </section>
 
-          <section className="flex flex-col justify-center px-7 py-10 sm:px-10">
+          <section className="relative z-[1] flex flex-col justify-center px-7 py-10 sm:px-10">
             <div className="mb-8 flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0543b8] text-lg font-bold">R</span>
               <div>
