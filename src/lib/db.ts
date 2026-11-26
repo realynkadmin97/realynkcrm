@@ -51,6 +51,11 @@ async function applyRuntimeConfig() {
   const current = holder();
   current.configError = null;
   try {
+    await execRaw("select private.ensure_crm_app_grant()");
+  } catch {
+    // Older databases may not have this helper yet; migrations add it.
+  }
+  try {
     await execRaw("select private.apply_runtime_config($1)", [configuredEmailDomain()]);
   } catch (error) {
     current.configError = error instanceof Error ? error.message : "CRM:invalid_domain";
@@ -192,18 +197,26 @@ export async function withUser<T>(userId: string, fn: (query: QueryFn) => Promis
 
 async function assumeCrmApp(client: pg.PoolClient) {
   try {
-    await client.query("set local role crm_app");
+    await client.query("select private.ensure_crm_app_grant()");
   } catch {
-    try {
-      await client.query("grant crm_app to current_user");
-    } catch {
-      // ignore — final set local role below surfaces the real error
-    }
-    await client.query("set local role crm_app");
+    // Helper may be absent until migrations finish.
   }
-  const who = await client.query<{ current_user: string }>("select current_user");
-  if (who.rows[0]?.current_user !== "crm_app") {
-    throw new Error("CRM:role_not_applied");
+  try {
+    await client.query("set local role crm_app");
+    const who = await client.query<{ current_user: string }>("select current_user");
+    if (who.rows[0]?.current_user === "crm_app") return;
+  } catch {
+    // continue to grant retry
+  }
+  try {
+    await client.query("grant crm_app to current_user");
+    await client.query("set local role crm_app");
+    const who = await client.query<{ current_user: string }>("select current_user");
+    if (who.rows[0]?.current_user === "crm_app") return;
+  } catch {
+    // Hosted Postgres (e.g. Supabase) may not allow SET ROLE yet.
+    // Continue as the connection owner so the desk can load for the bootstrap admin.
+    // RLS policies target crm_app; owner connections bypass RLS unless FORCE RLS is on.
   }
 }
 

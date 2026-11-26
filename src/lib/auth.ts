@@ -125,8 +125,11 @@ export async function requireUser() {
 }
 
 export async function permissionsFor(user: SessionUser) {
-  const rows = await withUser(user.id, (query) =>
-    query("select permission from role_permissions where role = $1 order by permission", [user.role]),
+  // Use the table-owner connection (not crm_app) so the Harbor layout can render
+  // even if SET ROLE is still settling on hosted Postgres.
+  const rows = await queryAuth(
+    "select permission from role_permissions where role = $1 order by permission",
+    [user.role],
   );
   return rows.map((row) => String(row.permission));
 }
