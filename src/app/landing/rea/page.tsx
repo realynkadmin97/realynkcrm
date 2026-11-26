@@ -32,9 +32,9 @@ export default function ReaLoginMockup() {
           <section className="relative flex min-h-[22rem] items-center justify-center px-4 py-10 sm:min-h-[28rem] sm:px-6">
             <div className="relative z-[1] flex w-full max-w-[22rem] flex-col items-center">
               <div className="relative w-full">
-                <div className="absolute top-2 left-0 z-[2] w-[min(100%,13.5rem)] -translate-y-1 sm:top-4 sm:left-[-0.25rem]">
+                <div className="absolute top-0 left-1/2 z-[2] w-[min(100%,13.75rem)] -translate-x-[58%] sm:top-1">
                   <div
-                    className="rounded-[1.35rem] px-4 py-3 text-left text-[#000851] shadow-[0_12px_30px_rgba(0,8,81,0.35)]"
+                    className="rounded-[1.4rem] px-4 py-3 text-left shadow-[0_12px_30px_rgba(0,8,81,0.35)]"
                     style={{ background: "linear-gradient(145deg, #7eb6ff 0%, #0257b5 55%, #0543b8 100%)" }}
                   >
                     <p className="text-sm font-bold leading-snug text-white">I&apos;m Rea, Realynk&apos;s command center manager.</p>
@@ -43,7 +43,7 @@ export default function ReaLoginMockup() {
                     </p>
                   </div>
                   <span
-                    className="ml-10 block h-0 w-0 border-x-[10px] border-t-[14px] border-x-transparent"
+                    className="ml-[4.5rem] block h-0 w-0 border-x-[10px] border-t-[14px] border-x-transparent"
                     style={{ borderTopColor: "#0543b8" }}
                     aria-hidden
                   />
@@ -55,7 +55,7 @@ export default function ReaLoginMockup() {
                   height={773}
                   unoptimized
                   priority
-                  className="relative z-[1] mx-auto mt-16 h-auto w-[min(100%,15rem)] drop-shadow-[0_24px_40px_rgba(0,0,0,0.35)] sm:mt-14 sm:w-[min(100%,16.5rem)]"
+                  className="relative z-[1] mx-auto mt-24 h-auto w-[min(100%,14.5rem)] drop-shadow-[0_24px_40px_rgba(0,0,0,0.35)] sm:w-[min(100%,15.5rem)]"
                 />
               </div>
             </div>
