@@ -7,6 +7,9 @@ export function proxy(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-realynk-pathname", pathname);
+
   if (
     pathname.startsWith("/login") ||
     pathname.startsWith("/landing") ||
@@ -14,7 +17,7 @@ export function proxy(request: NextRequest) {
     pathname.startsWith("/verify") ||
     pathname.startsWith("/session/end")
   ) {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
   if (!request.cookies.get("crm_session")?.value) {
     const url = request.nextUrl.clone();
@@ -22,7 +25,7 @@ export function proxy(request: NextRequest) {
     if (pathname !== "/") url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
-  return NextResponse.next();
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {

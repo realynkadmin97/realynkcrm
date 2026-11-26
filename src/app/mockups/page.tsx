@@ -25,7 +25,7 @@ export default function MockupsIndex() {
         <p className="text-xs tracking-[0.2em] text-[#0543b8] uppercase">Dashboard mockups</p>
         <h1 className="mt-2 text-4xl font-bold">Three directions for Rea&apos;s desk</h1>
         <p className="mt-3 max-w-xl text-[#022f7f]">
-          Static samples only — same Realynk colors, different chrome and controls. Pick one and we lock it into the live CRM.
+          Harbor is locked as the live command-center desk. These samples stay for reference.
         </p>
         <ul className="mt-8 space-y-3">
           {options.map((option) => (

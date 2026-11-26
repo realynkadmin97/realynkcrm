@@ -21,6 +21,7 @@ Updated 26 November 2026, 22:30 Asia/Shanghai.
 - Industry, email verification, ICP, and custom prompt runs do not call out. No server key is configured.
 - Company CRM is live at `https://crm.realynk.com` (Vercel, Realynk Assistants). Login: `/login`. Cursor private app remains a backup.
 - On a narrow phone, the Leads stage badge can clip inside the table.
+- Harbor is locked as the live CRM desk: soft canvas, department side rail (Go-to-Market live; Finance / Operations / HR placeholders), rounded modules.
 - The Rea door is locked as the global CRM design: Lato, light canvas, Realynk navy/blue tokens in `globals.css`, quiet corner waves, Rea on `/login` and `/verify`, light sidebar chrome.
 
 ## Do not regress
