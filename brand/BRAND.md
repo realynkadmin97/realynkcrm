@@ -62,4 +62,4 @@ Default door line: **I'm Rea, Realynk's command center manager.** Supporting sen
 
 ## Waves
 
-Soft intersecting ribbons use `#0543b8`, `#0257b5`, and `#022f7f` on the deepest navy. The sample is on `/landing/rea`. The FlowPro-style reference is `brand/wave-reference-flowpro.png`.
+Soft intersecting ribbons use `#0543b8`, `#0257b5`, and `#022f7f`. On the Rea door they stay light and quiet so Realynk blue is an accent, not the whole page. Inspiration for that airy layout: `brand/fantom-inspiration.png` (Fantom). The FlowPro-style wave reference is `brand/wave-reference-flowpro.png`.
